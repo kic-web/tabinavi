@@ -6,10 +6,14 @@ from gtts import gTTS
 import io
 
 # --- 1. API CONFIGURATION & CACHING ---
+# GitHub ပေါ်တင်ရင် လုံခြုံမှုရှိစေရန် Secrets စနစ်ကို အသုံးပြုခြင်း
 if "GEMINI_API_KEY" in str_web.secrets:
     API_KEY = str_web.secrets["GEMINI_API_KEY"]
+elif os.environ.get("GEMINI_API_KEY"):
+    API_KEY = os.environ.get("GEMINI_API_KEY")
 else:
-    API_KEY = "AIzaSyDLFpY6x4OqmfqE1-gdZizuzokMkwub8a0"  # ⚠️ Local မှာစမ်းရင် မင်းရဲ့ Key ကို ဒီမှာထည့်ပါ
+    # ⚠️ ကွန်ပျူတာထဲမှာတင် စမ်းသပ်ဖို့အတွက် မင်းရဲ့ API Key အစစ်ကို ဒီမှာ ထည့်ထားပါ
+    API_KEY = "AIzaSyDLFpY6x4OqmfqE1-gdZizuzokMkwub8a0"
 
 
 @str_web.cache_resource
@@ -23,7 +27,7 @@ except Exception as e:
     str_web.error(f"Client初期化エラー: {e}")
 
 # --- 2. WEB PAGE SETTINGS & MOBILE APP CONTAINER CSS ---
-str_web.set_page_config(page_title="Japan Local AI Guide", layout="centered")
+str_web.set_page_config(page_title="TabiNavi - Japan Local Guide", layout="centered")
 
 str_web.markdown(
     """
@@ -59,10 +63,7 @@ str_web.markdown(
         box-shadow: 0px 2px 6px rgba(188, 21, 43, 0.3);
         transition: 0.2s;
     }
-    div.stButton > button:first-child:hover {
-        background-color: #911021;
-        color: #ffffff;
-    }
+    div.stButton > button:first-child:hover { background-color: #911021; color: #ffffff; }
     .streamlit-expanderHeader {
         background-color: #f8f9fa !important;
         border-radius: 10px !important;
@@ -77,9 +78,10 @@ str_web.markdown(
     unsafe_allow_html=True,
 )
 
-str_web.markdown("<h1>🇯🇵 Japan Local AI Guide</h1>", unsafe_allow_html=True)
+# App Header (နာမည်အသစ်ဖြင့် ပြောင်းလဲထားပါသည်)
+str_web.markdown("<h1>🇯🇵 TabiNavi</h1>", unsafe_allow_html=True)
 str_web.markdown(
-    "<p style='text-align: center; color: #666; font-size: 13px;'>必要な情報だけを、必要な時に。手軽に使える携帯用AIガイドツール。</p>",
+    "<p style='text-align: center; color: #666; font-size: 13px;'>必要な情報だけを、必要な時に。手軽に使える携帯用ガイドツール。</p>",
     unsafe_allow_html=True,
 )
 
@@ -143,7 +145,7 @@ city_map_embeds = {
     "城崎温泉 (Kinosaki Onsen)": "Kinosaki+Onsen",
     "奈良 (Nara)": "Nara",
     "吉野 (Yoshino)": "Yoshino",
-    "名古屋 (Nazoya)": "Nazoya",
+    "名古屋 (Nagoya)": "Nagoya",
     "犬山 (Inuyama)": "Inuyama",
     "博多 (Hakata)": "Hakata+Fukuoka",
     "天神 (Tenjin)": "Tenjin+Fukuoka",
@@ -153,8 +155,7 @@ city_map_embeds = {
     "宮古島 (Miyakojima)": "Miyakojima",
 }
 
-# --- 4. USER INTERFACE (ကိုယ်တိုင်ရွေးချယ်ရန် ပုံစံပြောင်းလဲခြင်း) ---
-# index=None ထည့်ထားသဖြင့် အလိုအလျောက် ရွေးမထားဘဲ အလွတ်အတိုင်း စတင်ပေါ်လာပါမည်
+# --- 4. USER INTERFACE (SELECTBOXES) ---
 prefecture = str_web.selectbox(
     "都道府県 (Prefecture)",
     list(prefecture_city_map.keys()),
@@ -162,7 +163,6 @@ prefecture = str_web.selectbox(
     placeholder="--- 選択してください ---",
 )
 
-# Prefecture ရွေးပြီးမှ City Dropdown ပေါ်လာစေရန် ပြုလုပ်ခြင်း
 if prefecture:
     available_cities = prefecture_city_map[prefecture]
     city = str_web.selectbox(
@@ -173,7 +173,6 @@ if prefecture:
     )
 else:
     city = None
-    str_web.info("💡 まず都道府県を選択してください (Please select a prefecture first)")
 
 language_options = {
     "🇲🇲 Myanmar (မြန်မာဘာသာ)": "Myanmar",
@@ -214,7 +213,6 @@ str_web.markdown(
     unsafe_allow_html=True,
 )
 
-# Map Display (All items must be selected)
 if prefecture and city:
     search_query = city_map_embeds.get(city, city)
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
@@ -235,11 +233,8 @@ common_ai_config = types.GenerateContentConfig(
 # ----------------- BOX 1. LOCAL ETIGUETTE -----------------
 with str_web.expander("🗺️ 1. ローカルマナー＆ガイド"):
     if str_web.button("📝 ガイドを生成", key="btn_guide"):
-        # 🚨 အချက်အလက် ကျန်ခဲ့ပါက သတိပေးမည့် စစ်ဆေးချက်စနစ် (Validation)
         if not (prefecture and city and language and experience_type):
-            str_web.error(
-                "⚠️ 全ての項目を正しく選択してください！ (Please select all options before generating!)"
-            )
+            str_web.error("⚠️ 全ての項目を正しく選択してください！")
         else:
             with str_web.spinner("AIガイドを生成中..."):
                 prompt = f"Provide a detailed hyper-local travel guide for '{experience_type}' in {city}, {prefecture} for '{interests}'. Output language: {language}. Include 2-3 Google Maps links."
