@@ -16,10 +16,13 @@ str_web.markdown(
     unsafe_allow_html=True,
 )
 
-if "GEMINI_API_KEY" in str_web.secrets:
-    os.environ["GEMINI_API_KEY"] = str_web.secrets["GEMINI_API_KEY"]
+API_KEY = str_web.secrets.get("GEMINI_API_KEY")
 
-client = genai.Client()
+if not API_KEY:
+    str_web.error("Secrets ထဲမှာ GEMINI_API_KEY ကို ရှာမတွေ့ပါဘူးဗျာ။")
+    str_web.stop()
+
+client = genai.Client(api_key=API_KEY)
 
 
 @str_web.cache_resource
