@@ -5,6 +5,17 @@ from google.genai import types
 from gtts import gTTS
 import io
 
+str_web.set_page_config(page_title="TabiNavi", layout="centered")
+str_web.markdown(
+    """
+    <style>
+    .stApp { background-color: #FFFFFF !important; }
+    h1, h2, h3, p, span, div, label { color: #111111 !important; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 if "GEMINI_API_KEY" in str_web.secrets:
     os.environ["GEMINI_API_KEY"] = str_web.secrets["GEMINI_API_KEY"]
 
