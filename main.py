@@ -5,14 +5,13 @@ from google.genai import types
 from gtts import gTTS
 import io
 
+# 🎨 Layout configuration (Dropdown Visibility Issues Fixed)
 str_web.set_page_config(page_title="TabiNavi", layout="centered")
 str_web.markdown(
     """
     <style>
     .stApp { background-color: #FFFFFF !important; }
-    
     h1, h2, h3, p, span, div, label { color: #111111 !important; }
-    
     div[data-baseweb="select"] > div {
         background-color: #F0F2F6 !important;
         color: #111111 !important;
@@ -31,6 +30,8 @@ api_key = str_web.secrets.get("GEMINI_API_KEY")
 if not api_key:
     str_web.error("Secrets ထဲမှာ GEMINI_API_KEY ကို ရှာမတွေ့ပါဘူးဗျာ။")
     str_web.stop()
+
+API_KEY = api_key
 
 client = genai.Client(api_key=api_key)
 
