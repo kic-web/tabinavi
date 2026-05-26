@@ -5,15 +5,10 @@ from google.genai import types
 from gtts import gTTS
 import io
 
-# --- 1. API CONFIGURATION & CACHING ---
-# GitHub ပေါ်တင်ရင် လုံခြုံမှုရှိစေရန် Secrets စနစ်ကို အသုံးပြုခြင်း
 if "GEMINI_API_KEY" in str_web.secrets:
-    API_KEY = str_web.secrets["GEMINI_API_KEY"]
-elif os.environ.get("GEMINI_API_KEY"):
-    API_KEY = os.environ.get("GEMINI_API_KEY")
-else:
-    # ⚠️ ကွန်ပျူတာထဲမှာတင် စမ်းသပ်ဖို့အတွက် မင်းရဲ့ API Key အစစ်ကို ဒီမှာ ထည့်ထားပါ
-    API_KEY = "AIzaSyDLFpY6x4OqmfqE1-gdZizuzokMkwub8a0"
+    os.environ["GEMINI_API_KEY"] = str_web.secrets["GEMINI_API_KEY"]
+
+client = genai.Client()
 
 
 @str_web.cache_resource
