@@ -10,19 +10,29 @@ str_web.markdown(
     """
     <style>
     .stApp { background-color: #FFFFFF !important; }
+    
     h1, h2, h3, p, span, div, label { color: #111111 !important; }
+    
+    div[data-baseweb="select"] > div {
+        background-color: #F0F2F6 !important;
+        color: #111111 !important;
+    }
+    div[data-baseweb="popover"] li {
+        background-color: #FFFFFF !important;
+        color: #111111 !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-API_KEY = str_web.secrets.get("GEMINI_API_KEY")
+api_key = str_web.secrets.get("GEMINI_API_KEY")
 
-if not API_KEY:
+if not api_key:
     str_web.error("Secrets ထဲမှာ GEMINI_API_KEY ကို ရှာမတွေ့ပါဘူးဗျာ။")
     str_web.stop()
 
-client = genai.Client(api_key=API_KEY)
+client = genai.Client(api_key=api_key)
 
 
 @str_web.cache_resource
