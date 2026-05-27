@@ -6,7 +6,7 @@ from google.genai import types
 from gtts import gTTS
 import io
 
-# 🎨 Layout configuration (Dropdown Visibility Issues Fixed)
+# 🎨 Layout configuration
 str_web.set_page_config(page_title="TabiNavi - Japan Local Guide", layout="centered")
 str_web.markdown(
     """
@@ -46,15 +46,18 @@ try:
 except Exception as e:
     str_web.error(f"Client初期化エラー: {e}")
 
-# 🗺️ ဂျပန်နိုင်ငံ ဒေတာအားလုံးပါဝင်သော JSON ဖိုင်အား လှမ်းဖတ်ခြင်း
-try:
-    with open("japan_data.json", "r", encoding="utf-8") as f:
-        prefecture_city_map = json.load(f)
-except Exception as e:
-    str_web.error(
-        f"JSON Data ဖတ်ရတာ အဆင်မပြေပါဘူးဗျာ (japan_data.json ဖိုင် ဆောက်ဖို့ ကျန်နေလို့ ဖြစ်နိုင်ပါတယ်): {e}"
+# 🗺️ JSON ဖိုင်ကို လုံခြုံစိတ်ချရသော Exception Handling ဖြင့် ဖတ်ခြင်း
+prefecture_city_map = {}
+if os.path.exists("japan_data.json"):
+    try:
+        with open("japan_data.json", "r", encoding="utf-8") as f:
+            prefecture_city_map = json.load(f)
+    except Exception as e:
+        str_web.error(f"JSON Data Error: {e}")
+else:
+    str_web.warning(
+        "⚠️ japan_data.json ဖိုင်ကို ရှာမတွေ့သေးပါဘူးဗျာ။ GitHub ပေါ် ရောက်အောင် တင်ပေးဖို့ လိုအပ်ပါတယ်။"
     )
-    prefecture_city_map = {}
 
 # --- ☰ SIDEBAR LANGUAGE SETTING ---
 language_options = {
@@ -125,10 +128,10 @@ str_web.markdown(
     unsafe_allow_html=True,
 )
 
-# --- 4. USER INTERFACE (SELECTBOXES - JSON ဒေတာများဖြင့် အလိုအလျောက်ပြောင်းလဲပါမည်) ---
+# --- 4. USER INTERFACE (SELECTBOXES) ---
 prefecture = str_web.selectbox(
     "都道府県 (Prefecture)",
-    list(prefecture_city_map.keys()),
+    list(prefecture_city_map.keys()) if prefecture_city_map else [],
     index=None,
     placeholder="--- 選択してください ---",
 )
@@ -170,7 +173,6 @@ str_web.markdown(
 )
 
 if prefecture and city:
-    # JSON ထဲက မြို့အမည်ကို ဆွဲထုတ်ပြီး Google Map Embed လုပ်ခြင်း
     search_query = (
         city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
     )

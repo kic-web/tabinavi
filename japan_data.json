@@ -1,0 +1,253 @@
+{
+    "北海道 (Hokkaido)": [
+        "札幌市 (Sapporo)",
+        "函館市 (Hakodate)",
+        "小樽市 (Otaru)",
+        "旭川市 (Asahikawa)",
+        "富良野市 (Furano)"
+    ],
+    "青森県 (Aomori)": [
+        "青森市 (Aomori)",
+        "弘前市 (Hirosaki)",
+        "八戸市 (Hachinohe)"
+    ],
+    "岩手県 (Iwate)": [
+        "盛岡市 (Morioka)",
+        "花巻市 (Hanamaki)",
+        "平泉町 (Hiraizumi)"
+    ],
+    "宮城県 (Miyagi)": [
+        "仙台市 (Sendai)",
+        "松島町 (Matsushima)",
+        "石巻市 (Ishinomaki)"
+    ],
+    "秋田県 (Akita)": [
+        "秋田市 (Akita)",
+        "仙北市 (Semboku)",
+        "横手市 (Yokote)"
+    ],
+    "山形県 (Yamagata)": [
+        "山形市 (Yamagata)",
+        "米沢市 (Yonezawa)",
+        "酒田市 (Sakata)"
+    ],
+    "福島県 (Fukushima)": [
+        "福島市 (Fukushima)",
+        "会津若松市 (Aizuwakamatsu)",
+        "郡山市 (Koriyama)"
+    ],
+    "茨城県 (Ibaraki)": [
+        "水戸市 (Mito)",
+        "つくば市 (Tsukuba)",
+        "ひたちなか市 (Hitachinaka)"
+    ],
+    "栃木県 (Tochigi)": [
+        "宇都宮市 (Utsunomiya)",
+        "日光市 (Nikko)",
+        "那須町 (Nasu)"
+    ],
+    "群馬県 (Gunma)": [
+        "前橋市 (Maebashi)",
+        "高崎市 (Takasaki)",
+        "草津町 (Kusatsu)"
+    ],
+    "埼玉県 (Saitama)": [
+        "さいたま市 (Saitama)",
+        "川越市 (Kawagoe)",
+        "秩父市 (Chichibu)"
+    ],
+    "千葉県 (Chiba)": [
+        "千葉市 (Chiba)",
+        "成田市 (Narita)",
+        "浦安市 (Urayasu)"
+    ],
+    "東京都 (Tokyo)": [
+        "新宿区 (Shinjuku)",
+        "渋谷区 (Shibuya)",
+        "浅草 (Asakusa)",
+        "秋葉原 (Akihabara)",
+        "六本木 (Roppongi)",
+        "銀座 (Ginza)",
+        "上野 (Ueno)"
+    ],
+    "神奈川県 (Kanagawa)": [
+        "横浜市 (Yokohama)",
+        "鎌倉市 (Kamakura)",
+        "箱根町 (Hakone)",
+        "川崎市 (Kawasaki)"
+    ],
+    "新潟県 (Niigata)": [
+        "新潟市 (Niigata)",
+        "長岡市 (Nagaoka)",
+        "湯沢町 (Yuzawa)"
+    ],
+    "富山県 (Toyama)": [
+        "富山市 (Toyama)",
+        "高岡市 (Takaoka)",
+        "立山町 (Tateyama)"
+    ],
+    "石川県 (Ishikawa)": [
+        "金沢市 (Kanazawa)",
+        "輪島市 (Wajima)",
+        "加賀市 (Kaga)"
+    ],
+    "福井県 (Fukui)": [
+        "福井市 (Fukui)",
+        "敦賀市 (Tsuruga)",
+        "坂井市 (Sakai)"
+    ],
+    "山梨県 (Yamanashi)": [
+        "甲府市 (Kofu)",
+        "富士吉田市 (Fujiyoshida)",
+        "富士河口湖町 (Kawaguchiko)"
+    ],
+    "長野県 (Nagano)": [
+        "長野市 (Nagano)",
+        "松本市 (Matsumoto)",
+        "軽井沢町 (Karuizawa)"
+    ],
+    "岐阜県 (Gifu)": [
+        "岐阜市 (Gifu)",
+        "高山市 (Takayama)",
+        "白川村 (Shirakawa-go)"
+    ],
+    "静岡県 (Shizuoka)": [
+        "静岡市 (Shizuoka)",
+        "浜松市 (Hamamatsu)",
+        "熱海市 (Atami)",
+        "伊豆市 (Izu)"
+    ],
+    "愛知県 (Aichi)": [
+        "名古屋市 (Nagoya)",
+        "豊田市 (Toyota)",
+        "岡崎市 (Okazaki)"
+    ],
+    "三重県 (Mie)": [
+        "津市 (Tsu)",
+        "伊勢市 (Ise)",
+        "鳥羽市 (Toba)"
+    ],
+    "滋賀県 (Shiga)": [
+        "大津市 (Otsu)",
+        "彦根市 (Hikone)",
+        "長浜市 (Nagahama)"
+    ],
+    "京都府 (Kyoto)": [
+        "京都市 (Kyoto)",
+        "宇治市 (Uji)",
+        "嵐山 (Arashiyama)",
+        "祇園 (Gion)"
+    ],
+    "大阪府 (Osaka)": [
+        "大阪市 (Osaka)",
+        "堺市 (Sakai)",
+        "東大阪市 (Higashiosaka)",
+        "梅田 (Umeda)",
+        "難波 (Namba)",
+        "心斎橋 (Shinsaibashi)"
+    ],
+    "兵庫県 (Hyogo)": [
+        "神戸市 (Kobe)",
+        "姫路市 (Himeji)",
+        "西宮市 (Nishinomiya)"
+    ],
+    "奈良県 (Nara)": [
+        "奈良市 (Nara)",
+        "橿原市 (Kashihara)",
+        "生駒市 (Ikoma)"
+    ],
+    "和歌山県 (Wakayama)": [
+        "和歌山市 (Wakayama)",
+        "田辺市 (Tanabe)",
+        "高野町 (Koya)"
+    ],
+    "鳥取県 (Tottori)": [
+        "鳥取市 (Tottori)",
+        "米子市 (Yonago)",
+        "境港市 (Sakaiminato)"
+    ],
+    "島根県 (Shimane)": [
+        "松江市 (Matsue)",
+        "出雲市 (Izumo)",
+        "津和野町 (Tsuwano)"
+    ],
+    "岡山県 (Okayama)": [
+        "岡山市 (Okayama)",
+        "倉敷市 (Kurashiki)",
+        "津山市 (Tsuyama)"
+    ],
+    "広島県 (Hiroshima)": [
+        "広島市 (Hiroshima)",
+        "尾道市 (Onomichi)",
+        "福山市 (Fukuyama)",
+        "宮島 (Miyajima)"
+    ],
+    "山口県 (Yamaguchi)": [
+        "山口市 (Yamaguchi)",
+        "下関市 (Shimonoseki)",
+        "岩国市 (Iwakuni)"
+    ],
+    "徳島県 (Tokushima)": [
+        "徳島市 (Tokushima)",
+        "鳴門市 (Narito)",
+        "三好市 (Miyoshi)"
+    ],
+    "香川県 (Kagawa)": [
+        "高松市 (Takamatsu)",
+        "丸亀市 (Marugame)",
+        "小豆島町 (Shodoshima)"
+    ],
+    "愛媛県 (Ehime)": [
+        "松山市 (Matsuyama)",
+        "今治市 (Imabari)",
+        "宇和島市 (Uwajima)"
+    ],
+    "高知県 (Kochi)": [
+        "高知市 (Kochi)",
+        "四万十市 (Shimanto)",
+        "南国市 (Nankoku)"
+    ],
+    "福岡県 (Fukuoka)": [
+        "福岡市 (Fukuoka)",
+        "北九州市 (Kitakyushu)",
+        "博多 (Hakata)",
+        "天神 (Tenjin)",
+        "太宰府市 (Dazaifu)"
+    ],
+    "佐賀県 (Saga)": [
+        "佐賀市 (Saga)",
+        "唐津市 (Karatsu)",
+        "伊万里市 (Imari)"
+    ],
+    "長崎県 (Nagasaki)": [
+        "長崎市 (Nagasaki)",
+        "佐世保市 (Sasebo)",
+        "島原市 (Shimabara)"
+    ],
+    "熊本県 (Kumamoto)": [
+        "熊本市 (Kumamoto)",
+        "阿蘇市 (Aso)",
+        "天草市 (Amakusa)"
+    ],
+    "大分県 (Oita)": [
+        "大分市 (Oita)",
+        "別府市 (Beppu)",
+        "由布市 (Yufuin)"
+    ],
+    "宮崎県 (Miyazaki)": [
+        "宮崎市 (Miyazaki)",
+        "延岡市 (Nobeoka)",
+        "日南市 (Nichinan)"
+    ],
+    "鹿児島県 (Kagoshima)": [
+        "鹿児島市 (Kagoshima)",
+        "霧島市 (Kirishima)",
+        "指宿市 (Ibusuki)"
+    ],
+    "沖縄県 (Okinawa)": [
+        "那覇市 (Naha)",
+        "石垣市 (Ishigaki)",
+        "宮古島市 (Miyakojima)",
+        "名護市 (Nago)"
+    ]
+}
