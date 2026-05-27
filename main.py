@@ -1,4 +1,5 @@
 import os
+import json
 import streamlit as str_web
 from google import genai
 from google.genai import types
@@ -6,7 +7,7 @@ from gtts import gTTS
 import io
 
 # 🎨 Layout configuration (Dropdown Visibility Issues Fixed)
-str_web.set_page_config(page_title="TabiNavi", layout="centered")
+str_web.set_page_config(page_title="TabiNavi - Japan Local Guide", layout="centered")
 str_web.markdown(
     """
     <style>
@@ -32,7 +33,6 @@ if not api_key:
     str_web.stop()
 
 API_KEY = api_key
-
 client = genai.Client(api_key=api_key)
 
 
@@ -46,9 +46,29 @@ try:
 except Exception as e:
     str_web.error(f"Client初期化エラー: {e}")
 
-# --- 2. WEB PAGE SETTINGS & MOBILE APP CONTAINER CSS ---
-str_web.set_page_config(page_title="TabiNavi - Japan Local Guide", layout="centered")
+# 🗺️ ဂျပန်နိုင်ငံ ဒေတာအားလုံးပါဝင်သော JSON ဖိုင်အား လှမ်းဖတ်ခြင်း
+try:
+    with open("japan_data.json", "r", encoding="utf-8") as f:
+        prefecture_city_map = json.load(f)
+except Exception as e:
+    str_web.error(
+        f"JSON Data ဖတ်ရတာ အဆင်မပြေပါဘူးဗျာ (japan_data.json ဖိုင် ဆောက်ဖို့ ကျန်နေလို့ ဖြစ်နိုင်ပါတယ်): {e}"
+    )
+    prefecture_city_map = {}
 
+# --- ☰ SIDEBAR LANGUAGE SETTING ---
+language_options = {
+    "🇯🇵 日本語 (Japanese)": "Japanese",
+    "🇲🇲 Myanmar (မြန်မာဘာသာ)": "Myanmar",
+    "🇺🇸 English (🇺🇸)": "English",
+    "🇹🇭 ภาษาไทย (Thai)": "Thai",
+}
+selected_lang_label = str_web.sidebar.selectbox(
+    "Language / 行動 / 言語", list(language_options.keys()), index=0
+)
+language = language_options[selected_lang_label]
+
+# --- 2. MOBILE APP CONTAINER CSS ---
 str_web.markdown(
     """
     <style>
@@ -98,84 +118,14 @@ str_web.markdown(
     unsafe_allow_html=True,
 )
 
-# App Header (နာမည်အသစ်ဖြင့် ပြောင်းလဲထားပါသည်)
+# App Header
 str_web.markdown("<h1>🇯🇵 TabiNavi</h1>", unsafe_allow_html=True)
 str_web.markdown(
     "<p style='text-align: center; color: #666; font-size: 13px;'>必要な情報だけを、必要な時に。手軽に使える携帯用ガイドツール。</p>",
     unsafe_allow_html=True,
 )
 
-# --- 3. JAPAN PREFECTURES & CITIES DATA ---
-prefecture_city_map = {
-    "北海道 (Hokkaido)": [
-        "札幌 (Sapporo)",
-        "函館 (Hakodate)",
-        "小樽 (Otaru)",
-        "旭川 (Asahikawa)",
-    ],
-    "東京都 (Tokyo)": [
-        "新宿 (Shinjuku)",
-        "渋谷 (Shibuya)",
-        "浅草 (Asakusa)",
-        "秋葉原 (Akihabara)",
-    ],
-    "神奈川県 (Kanagawa)": ["横浜 (Yokohama)", "鎌倉 (Kamakura)", "箱根 (Hakone)"],
-    "千葉県 (Chiba)": ["千葉 (Chiba)", "成田 (Narita)", "浦安 (Urayasu)"],
-    "埼玉県 (Saitama)": ["さいたま (Saitama)", "川越 (Kawagoe)"],
-    "京都府 (Kyoto)": [
-        "京都駅周辺 (Kyoto City)",
-        "嵐山 (Arashiyama)",
-        "宇治 (Uji)",
-        "祇園 (Gion)",
-    ],
-    "大阪府 (Osaka)": ["梅田 (Umeda)", "難波・心斎橋 (Namba)", "天王寺 (Tennoji)"],
-    "兵庫県 (Hyogo)": ["神戸 (Kobe)", "姫路 (Himeji)", "城崎温泉 (Kinosaki Onsen)"],
-    "奈良県 (Nara)": ["奈良 (Nara)", "吉野 (Yoshino)"],
-    "愛知県 (Aichi)": ["名古屋 (Nagoya)", "犬山 (Inuyama)"],
-    "福岡県 (Fukuoka)": ["博多 (Hakata)", "天神 (Tenjin)", "太宰府 (Dazaifu)"],
-    "沖縄県 (Okinawa)": ["那覇 (Naha)", "石垣島 (Ishigaki)", "宮古島 (Miyakojima)"],
-}
-
-city_map_embeds = {
-    "札幌 (Sapporo)": "Sapporo",
-    "函館 (Hakodate)": "Hakodate",
-    "小樽 (Otaru)": "Otaru",
-    "旭川 (Asahikawa)": "Asahikawa",
-    "新宿 (Shinjuku)": "Shinjuku+Tokyo",
-    "渋谷 (Shibuya)": "Shibuya+Tokyo",
-    "浅草 (Asakusa)": "Asakusa+Tokyo",
-    "秋葉原 (Akihabara)": "Akihabara+Tokyo",
-    "横浜 (Yokohama)": "Yokohama",
-    "鎌倉 (Kamakura)": "Kamakura",
-    "箱根 (Hakone)": "Hakone",
-    "千葉 (Chiba)": "Chiba",
-    "成田 (Narita)": "Narita",
-    "浦安 (Urayasu)": "Urayasu",
-    "さいたま (Saitama)": "Saitama",
-    "川越 (Kawagoe)": "Kawagoe",
-    "京都駅周辺 (Kyoto City)": "Kyoto+Station",
-    "嵐山 (Arashiyama)": "Arashiyama",
-    "宇治 (Uji)": "Uji",
-    "祇園 (Gion)": "Gion+Kyoto",
-    "梅田 (Umeda)": "Umeda+Osaka",
-    "難波・心斎橋 (Namba)": "Namba+Osaka",
-    "天王寺 (Tennoji)": "Tennoji+Osaka",
-    "神戸 (Kobe)": "Kobe",
-    "姫路 (Himeji)": "Himeji",
-    "城崎温泉 (Kinosaki Onsen)": "Kinosaki+Onsen",
-    "奈良 (Nara)": "Nara",
-    "吉野 (Yoshino)": "Yoshino",
-    "名古屋 (Nagoya)": "Nagoya",
-    "犬山 (Inuyama)": "Inuyama",
-    "博多 (Hakata)": "Hakata+Fukuoka",
-    "天神 (Tenjin)": "Tenjin+Fukuoka",
-    "太宰府 (Dazaifu)": "Dazaifu",
-    "那覇 (Naha)": "Naha+Okinawa",
-    "石垣島 (Ishigaki)": "Ishigaki",
-    "宮古島 (Miyakojima)": "Miyakojima",
-}
-
-# --- 4. USER INTERFACE (SELECTBOXES) ---
+# --- 4. USER INTERFACE (SELECTBOXES - JSON ဒေတာများဖြင့် အလိုအလျောက်ပြောင်းလဲပါမည်) ---
 prefecture = str_web.selectbox(
     "都道府県 (Prefecture)",
     list(prefecture_city_map.keys()),
@@ -184,7 +134,7 @@ prefecture = str_web.selectbox(
 )
 
 if prefecture:
-    available_cities = prefecture_city_map[prefecture]
+    available_cities = prefecture_city_map.get(prefecture, [])
     city = str_web.selectbox(
         "都市・地域 (City/Area)",
         available_cities,
@@ -193,20 +143,6 @@ if prefecture:
     )
 else:
     city = None
-
-language_options = {
-    "🇲🇲 Myanmar (မြန်မာဘာသာ)": "Myanmar",
-    "🇯🇵 日本語 (Japanese)": "Japanese",
-    "🇺🇸 English (🇺🇸)": "English",
-    "🇹🇭 ภาษาไทย (Thai)": "Thai",
-}
-selected_lang_label = str_web.selectbox(
-    "出力言語 (Language)",
-    list(language_options.keys()),
-    index=None,
-    placeholder="--- 選択してください ---",
-)
-language = language_options[selected_lang_label] if selected_lang_label else None
 
 experience_type = str_web.selectbox(
     "アクティビティ (Activity)",
@@ -234,7 +170,10 @@ str_web.markdown(
 )
 
 if prefecture and city:
-    search_query = city_map_embeds.get(city, city)
+    # JSON ထဲက မြို့အမည်ကို ဆွဲထုတ်ပြီး Google Map Embed လုပ်ခြင်း
+    search_query = (
+        city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
+    )
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(
         f'<iframe src="{map_url}" width="100%" height="220" style="border:0; border-radius:12px; box-shadow: 0px 2px 8px rgba(0,0,0,0.05);" allowfullscreen="" loading="lazy"></iframe>',
@@ -245,8 +184,9 @@ if prefecture and city:
 common_ai_config = types.GenerateContentConfig(
     temperature=0.7,
     system_instruction=(
-        "You are a hyper-local travel expert. Provide highly detailed, practical step-by-step guidance. "
-        "When the output language is Myanmar, use natural, simple, modern colloquial Myanmar prose (စကားပြောဟန်) that is easy to read."
+        f"You are a hyper-local travel expert. Provide highly detailed, practical step-by-step guidance. "
+        f"Strict Rule: Extract and show ONLY the most important main points using short bullet points. Do not write long paragraphs. "
+        f"When the output language is Myanmar, use natural, simple, modern colloquial Myanmar prose (စကားပြောဟန်) that is easy to read."
     ),
 )
 
@@ -257,7 +197,7 @@ with str_web.expander("🗺️ 1. ローカルマナー＆ガイド"):
             str_web.error("⚠️ 全ての項目を正しく選択してください！")
         else:
             with str_web.spinner("AIガイドを生成中..."):
-                prompt = f"Provide a detailed hyper-local travel guide for '{experience_type}' in {city}, {prefecture} for '{interests}'. Output language: {language}. Include 2-3 Google Maps links."
+                prompt = f"Provide a short, bullet-point hyper-local travel guide for '{experience_type}' in {city}, {prefecture} for '{interests}'. Output language: {language}. Keep it brief, focus only on main points. Include 2-3 Google Maps links."
                 placeholder = str_web.empty()
                 full_text = ""
                 try:
@@ -279,7 +219,7 @@ with str_web.expander("☀️ 2. 現在の天気＆服装ガイド"):
             str_web.error("⚠️ 全ての項目を正しく選択してください！")
         else:
             with str_web.spinner("天気情報を分析中..."):
-                prompt = f"Estimate seasonal weather trends for this month in {city}, {prefecture} for year 2026. Suggest clothes for '{experience_type}'. Output language: {language}."
+                prompt = f"Estimate seasonal weather trends for this month in {city}, {prefecture} for year 2026. Suggest clothes for '{experience_type}' using short bullet points. Output language: {language}."
                 placeholder = str_web.empty()
                 full_text = ""
                 try:
@@ -306,7 +246,7 @@ with str_web.expander("💱 3. 通貨両替計算機"):
             str_web.error("⚠️ 上記の全ての項目をまず選択してください！")
         else:
             with str_web.spinner("計算中..."):
-                prompt = f"Convert {yen_amount} JPY into {currency_target} using realistic 2026 rates. Explain what this can buy for '{experience_type}' in {city}. Output language: {language}."
+                prompt = f"Convert {yen_amount} JPY into {currency_target} using realistic 2026 rates. Briefly explain what this can buy for '{experience_type}' in {city} in 2-3 short bullets. Output language: {language}."
                 placeholder = str_web.empty()
                 full_text = ""
                 try:
@@ -328,7 +268,7 @@ with str_web.expander("🚨 4. 緊急連絡先＆対応病院"):
             str_web.error("⚠️ 都道府県、都市、言語を選択してください！")
         else:
             with str_web.spinner("検索中..."):
-                prompt = f"Provide Japan emergency numbers (110, 119) and 1-2 real hospitals near {city}, {prefecture} supporting foreigners/English. Output language: {language}."
+                prompt = f"Provide Japan emergency numbers (110, 119) and 1-2 real hospitals near {city}, {prefecture} supporting foreigners/English using short bullets. Output language: {language}."
                 placeholder = str_web.empty()
                 full_text = ""
                 try:
@@ -387,7 +327,7 @@ if str_web.session_state.show_camera:
                     )
 
                     menu_prompt = f"""
-                    Translate this Japanese menu into {language}. Explain dishes/ingredients. 
+                    Translate this Japanese menu into {language}. Briefly explain dishes/ingredients using short bullet points.
                     Extract 1 key phrase to order food (Write ONLY Japanese Kanji/Kana after 'PHRASE:', e.g., PHRASE:これをお願いします)
                     """
                     menu_placeholder = str_web.empty()
