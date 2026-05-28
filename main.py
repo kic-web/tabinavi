@@ -4,7 +4,7 @@ import streamlit as str_web
 from google import genai
 from google.genai import types
 
-# 🎨 Streamlit standard Page Configuration
+# 🎨 Streamlit Standard Page Configuration (No Custom Bad CSS)
 str_web.set_page_config(page_title="TabiNavi", layout="centered")
 
 # --- 🌐 MULTI-LANGUAGE DICTIONARY FOR UI ---
@@ -77,11 +77,10 @@ ui_translations = {
     },
 }
 
-# --- ⚙️ SIDEBAR SETTINGS (မျဉ်းသုံးကြောင်း Menu ထဲမှာပဲ အကုန်ထားပါတယ်) ---
+# --- ⚙️ SIDEBAR SETTINGS (Language Switcher Inside Sidebar) ---
 with str_web.sidebar:
     str_web.markdown(f"## {ui_translations['English']['sidebar_title']}")
 
-    # 1. Language Dropdown inside Sidebar
     language_options = {
         "🇺🇸 English": "English",
         "🇲🇲 Myanmar (မြန်မာ)": "Myanmar",
@@ -95,7 +94,7 @@ with str_web.sidebar:
 
     str_web.markdown("---")
     str_web.info(
-        "💡 Light/Dark mode can also be fully automated via your browser or Streamlit Settings menu (Top right 3 dots)."
+        "💡 Tip: You can switch Light/Dark mode from Streamlit Settings menu (Top-right 3 dots > Settings > Theme)."
     )
 
 # --- API CLIENT & DATA SETUP ---
@@ -213,7 +212,7 @@ with str_web.expander(tx["guide_box"]):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-# Box 2: Weather & Clothing Guide
+# Box 2: Weather & Clothing Guide (ပြန်ပေါ်လာပါပြီ)
 with str_web.expander(tx["weather_box"]):
     if str_web.button(tx["weather_btn"], key="btn_weather"):
         if not (prefecture and city):
