@@ -6,47 +6,90 @@ from google.genai import types
 from gtts import gTTS
 import io
 
-# 🎨 Layout configuration
-str_web.set_page_config(page_title="TabiNavi - Japan Local Guide", layout="centered")
+# 🎨 Premium Mobile View Setup & Custom Dark-Mode Inspired UI
+str_web.set_page_config(page_title="TabiNavi - Settings", layout="centered")
+
+# --- ⚙️ FOTMOB STYLE CSS INJECTION ---
 str_web.markdown(
     """
     <style>
-    .stApp { background-color: #FFFFFF !important; }
-    h1, h2, h3, p, span, div, label { color: #111111 !important; }
+    .stApp { background-color: #0b0e11 !important; }
+    .block-container {
+        max-width: 430px !important;
+        padding: 25px 20px !important;
+        background-color: #000000 !important;
+        border-radius: 25px;
+        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    h1 {
+        color: #ffffff !important;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 24px !important;
+        font-weight: 700 !important;
+        text-align: center;
+        margin-bottom: 5px !important;
+    }
+    .section-title {
+        color: #ffffff !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        margin-top: 25px !important;
+        margin-bottom: 12px !important;
+    }
     div[data-baseweb="select"] > div {
-        background-color: #F0F2F6 !important;
-        color: #111111 !important;
+        background-color: #1c1c1e !important;
+        border: none !important;
+        border-radius: 14px !important;
+        padding: 6px 10px !important;
     }
-    div[data-baseweb="popover"] li {
-        background-color: #FFFFFF !important;
-        color: #111111 !important;
+    div[data-baseweb="select"] span, div[data-baseweb="select"] div {
+        color: #ffffff !important;
+        font-size: 15px !important;
     }
+    div[data-baseweb="popover"] ul { background-color: #1c1c1e !important; }
+    div[data-baseweb="popover"] li { background-color: #1c1c1e !important; color: #ffffff !important; }
+    div[data-baseweb="popover"] li:hover { background-color: #2c2c2e !important; }
+    label {
+        color: #8e8e93 !important;
+        font-size: 12px !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 5px;
+        margin-bottom: 6px !important;
+    }
+    div.stButton > button:first-child {
+        background-color: #bc152b !important;
+        color: white !important;
+        border-radius: 14px !important;
+        border: none !important;
+        width: 100%;
+        padding: 12px !important;
+        font-weight: bold !important;
+    }
+    .streamlit-expanderHeader {
+        background-color: #1c1c1e !important;
+        border: none !important;
+        border-radius: 14px !important;
+        color: #ffffff !important;
+        margin-bottom: 10px;
+    }
+    .streamlit-expanderContent { background-color: #1c1c1e !important; color: #ffffff !important; }
+    hr { border-color: #2c2c2e !important; }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
+# --- API CLIENT & JSON SETUP ---
 api_key = str_web.secrets.get("GEMINI_API_KEY")
-
 if not api_key:
-    str_web.error("Secrets ထဲမှာ GEMINI_API_KEY ကို ရှာမတွေ့ပါဘူးဗျာ။")
+    str_web.error("Secrets ထဲမှာ GEMINI_API_KEY ကို ရှာမတွေ့ပါဘူးဗျာ।")
     str_web.stop()
 
-API_KEY = api_key
 client = genai.Client(api_key=api_key)
 
-
-@str_web.cache_resource
-def get_gemini_client(key: str):
-    return genai.Client(api_key=key)
-
-
-try:
-    client = get_gemini_client(API_KEY)
-except Exception as e:
-    str_web.error(f"Client初期化エラー: {e}")
-
-# 🗺️ JSON ဖိုင်ကို လုံခြုံစိတ်ချရသော Exception Handling ဖြင့် ဖတ်ခြင်း
 prefecture_city_map = {}
 if os.path.exists("japan_data.json"):
     try:
@@ -54,310 +97,280 @@ if os.path.exists("japan_data.json"):
             prefecture_city_map = json.load(f)
     except Exception as e:
         str_web.error(f"JSON Data Error: {e}")
-else:
-    str_web.warning(
-        "⚠️ japan_data.json ဖိုင်ကို ရှာမတွေ့သေးပါဘူးဗျာ။ GitHub ပေါ် ရောက်အောင် တင်ပေးဖို့ လိုအပ်ပါတယ်။"
-    )
 
-# --- ☰ SIDEBAR LANGUAGE SETTING ---
-language_options = {
-    "🇯🇵 日本語 (Japanese)": "Japanese",
-    "🇲🇲 Myanmar (မြန်မာဘာသာ)": "Myanmar",
-    "🇺🇸 English (🇺🇸)": "English",
-    "🇹🇭 ภาษาไทย (Thai)": "Thai",
+# 🌐 MULTI-LANGUAGE DICTIONARY FOR UI
+ui_translations = {
+    "Japanese": {
+        "title": "⚙️ 設定 (Settings)",
+        "sub": "ローカル旅行の設定を行います",
+        "sec_general": "一般設定",
+        "pref_label": "📍 都道府県を選択",
+        "pref_holder": "都道府県を選んでください...",
+        "city_label": "🏙️ 都市・地域を選択",
+        "city_holder": "都市を選んでください...",
+        "city_warn": "都市を有効にするには、まず都道府県を選択してください。",
+        "sec_trip": "旅行の好み",
+        "act_label": "🎯 アクティビティのタイプ",
+        "act_holder": "アクティビティを選択...",
+        "sec_other": "その他のガイド＆ツール",
+        "guide_box": "📝 ローカルガイド ＆ マナーサポート",
+        "guide_btn": "ガイドを生成",
+        "calc_box": "💱 通貨両替計算機",
+        "calc_btn": "両替計算する",
+        "sos_box": "🚨 緊急連絡先 ＆ 対応病院",
+        "sos_btn": "緊急情報を表示",
+        "sec_cam": "スマート翻訳機",
+        "cam_btn_open": "📷 メニューカメラ起動",
+        "cam_btn_close": "❌ カメラを閉じる",
+        "cam_trans": "🥢 メニューを翻訳",
+        "error_select": "⚠️ 全ての項目を正しく選択してください！",
+    },
+    "English": {
+        "title": "⚙️ Settings",
+        "sub": "Configure your local travel preferences",
+        "sec_general": "General Settings",
+        "pref_label": "📍 Select Prefecture",
+        "pref_holder": "Choose a prefecture...",
+        "city_label": "🏙️ Select City / Area",
+        "city_holder": "Choose a city...",
+        "city_warn": "Please select a prefecture first to unlock cities.",
+        "sec_trip": "Trip Preferences",
+        "act_label": "🎯 Activity Type",
+        "act_holder": "Select activity...",
+        "sec_other": "Other Guides & Tools",
+        "guide_box": "📝 Tips and support (Local Guide)",
+        "guide_btn": "Generate Guide",
+        "calc_box": "💱 Currency Converter",
+        "calc_btn": "Calculate Conversion",
+        "sos_box": "🚨 Emergency SOS Numbers",
+        "sos_btn": "Show Emergency Contacts",
+        "sec_cam": "Smart Translator",
+        "cam_btn_open": "📷 Open Menu Camera",
+        "cam_btn_close": "❌ Close Camera",
+        "cam_trans": "🥢 Translate Menu",
+        "error_select": "⚠️ Please select Prefecture, City, and Activity first!",
+    },
+    "Myanmar": {
+        "title": "⚙️ ဆက်တင်များ (Settings)",
+        "sub": "သင်သွားမည့် ဒေသတွင်းခရီးစဉ် စိတ်ကြိုက်ပြင်ဆင်ရန်",
+        "sec_general": "အထွေထွေ ဆက်တင်များ",
+        "pref_label": "📍 ပြည်နယ်/ခရိုင် ကို ရွေးချယ်ပါ",
+        "pref_holder": "ခရိုင်တစ်ခု ရွေးချယ်ပေးပါ...",
+        "city_label": "🏙️ မြို့/ဒေသ ကို ရွေးချယ်ပါ",
+        "city_holder": "မြို့ကို ရွေးချယ်ပေးပါ...",
+        "city_warn": "မြို့များကို ရွေးချယ်နိုင်ရန် အရင်ဆုံး ခရိုင်တစ်ခုကို အပေါ်တွင် ရွေးပေးပါရန်။",
+        "sec_trip": "ခရီးစဉ် စိတ်ကြိုက်ရွေးချယ်မှု",
+        "act_label": "🎯 လုပ်ဆောင်မည့် အတွေ့အကြုံ အမျိုးအစား",
+        "act_holder": "အတွေ့အကြုံ ရွေးချယ်ရန်...",
+        "sec_other": "အခြား လမ်းညွှန်များနှင့် ကိရိယာများ",
+        "guide_box": "📝 ဒေသတွင်း လမ်းညွှန်နှင့် ယဉ်ကျေးမှု စည်းကမ်းများ",
+        "guide_btn": "လမ်းညွှန်ချက် ထုတ်လုပ်မည်",
+        "calc_box": "💱 ငွေလဲနှုန်း တွက်ချက်စနစ်",
+        "calc_btn": "ငွေလဲနှုန်း တွက်မည်",
+        "sos_box": "🚨 အရေးပေါ် ဖုန်းနံပါတ်များနှင့် ဆေးရုံများ",
+        "sos_btn": "အရေးပေါ် အချက်အလက်ပြပါ",
+        "sec_cam": "စမတ်ကင်မရာ ဘာသာပြန်စနစ်",
+        "cam_btn_open": "📷 မီနူးဖတ်ရန် ကင်မရာဖွင့်မည်",
+        "cam_btn_close": "❌ ကင်မရာ ပြန်ပိတ်မည်",
+        "cam_trans": "🥢 မီနူးကို ဘာသာပြန်မည်",
+        "error_select": "⚠️ ကျေးဇူးပြု၍ ခရိုင်၊ မြို့နှင့် လုပ်ဆောင်ချက်များကို အရင်ရွေးချယ်ပေးပါဦးဗျာ။",
+    },
 }
-selected_lang_label = str_web.sidebar.selectbox(
-    "Language / 行動 / 言語", list(language_options.keys()), index=0
-)
-language = language_options[selected_lang_label]
 
-# --- 2. MOBILE APP CONTAINER CSS ---
+# --- 🌐 LANGUAGE DROPDOWN ---
+language_options = {
+    "🇺🇸 English (🇺🇸)": "English",
+    "🇲🇲 Myanmar (မြန်မာဘာသာ)": "Myanmar",
+    "🇯🇵 日本語 (Japanese)": "Japanese",
+}
+
+selected_lang_label = str_web.selectbox(
+    "Select Interface Language / 言語選択", list(language_options.keys()), index=0
+)
+current_lang = language_options[selected_lang_label]
+tx = ui_translations[current_lang]
+
+# --- APP HEADER ---
+str_web.markdown(f"<h1>{tx['title']}</h1>", unsafe_allow_html=True)
 str_web.markdown(
-    """
-    <style>
-    .block-container {
-        max-width: 430px !important;
-        padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
-        padding-left: 15px !important;
-        padding-right: 15px !important;
-        background-color: #ffffff;
-        border-radius: 20px;
-        box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.08);
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-    .stApp { background-color: #eef2f5; }
-    h1 {
-        color: #bc152b !important;
-        font-family: 'Helvetica Neue', Arial, sans-serif;
-        font-size: 24px !important;
-        text-align: center;
-        font-weight: bold;
-    }
-    div.stButton > button:first-child {
-        background-color: #bc152b;
-        color: white;
-        border-radius: 10px;
-        border: none;
-        width: 100%;
-        padding: 10px;
-        font-weight: bold;
-        box-shadow: 0px 2px 6px rgba(188, 21, 43, 0.3);
-        transition: 0.2s;
-    }
-    div.stButton > button:first-child:hover { background-color: #911021; color: #ffffff; }
-    .streamlit-expanderHeader {
-        background-color: #f8f9fa !important;
-        border-radius: 10px !important;
-        border-left: 6px solid #bc152b !important;
-        font-weight: bold !important;
-        padding: 12px !important;
-        margin-bottom: 5px;
-    }
-    .stCameraInput > div { border-radius: 15px !important; }
-    </style>
-""",
+    f"<p style='text-align: center; color: #8e8e93; font-size: 13px; margin-bottom: 20px;'>{tx['sub']}</p>",
     unsafe_allow_html=True,
 )
 
-# App Header
-str_web.markdown("<h1>🇯🇵 TabiNavi</h1>", unsafe_allow_html=True)
+# ----------------- SECTION 1: GENERAL SETTINGS -----------------
 str_web.markdown(
-    "<p style='text-align: center; color: #666; font-size: 13px;'>必要な情報だけを、必要な時に。手軽に使える携帯用ガイドツール。</p>",
-    unsafe_allow_html=True,
+    f"<div class='section-title'>{tx['sec_general']}</div>", unsafe_allow_html=True
 )
 
-# --- 4. USER INTERFACE (SELECTBOXES) ---
+# 1. Prefecture Row
 prefecture = str_web.selectbox(
-    "都道府県 (Prefecture)",
+    tx["pref_label"],
     list(prefecture_city_map.keys()) if prefecture_city_map else [],
     index=None,
-    placeholder="--- 選択してください ---",
+    placeholder=tx["pref_holder"],
 )
 
+# 2. City Row
 if prefecture:
     available_cities = prefecture_city_map.get(prefecture, [])
     city = str_web.selectbox(
-        "都市・地域 (City/Area)",
-        available_cities,
-        index=None,
-        placeholder="--- 選択してください ---",
+        tx["city_label"], available_cities, index=None, placeholder=tx["city_holder"]
     )
 else:
     city = None
+    str_web.markdown(
+        f"<p style='color: #48484a; font-size: 13px; margin-left: 5px;'>{tx['city_warn']}</p>",
+        unsafe_allow_html=True,
+    )
 
-experience_type = str_web.selectbox(
-    "アクティビティ (Activity)",
-    [
+# ----------------- SECTION 2: TRIP PREFERENCES -----------------
+str_web.markdown(
+    f"<div class='section-title'>{tx['sec_trip']}</div>", unsafe_allow_html=True
+)
+
+activity_mapping = {
+    "Japanese": [
         "地元のスーパーでの買い物と家庭料理の体験",
         "銭湯・温泉のマナーと正しい入浴方法",
         "ローカルバスの正しい乗り方と運賃の支払い方",
         "地域密着型居酒屋での注文方法とマナー",
         "コインランドリーの利用方法とマナー",
         "日本のカプセルホテルやビジネスホテルの賢い利用方法",
-        "100円ショップ（ダイソー等）で買える便利な旅行グッズと活用法",
-        "新幹線の切符の買い方と正しい乗り方マナー",
-        "人気のナイトクラブ・バーの探し方と安全な楽しみ方",
     ],
+    "English": [
+        "Shopping at local supermarkets & home cooking experience",
+        "Sento/Onsen etiquette & correct bathing method",
+        "How to ride local buses and pay the fare correctly",
+        "Ordering food & manners at local Izakaya",
+        "Coin laundry usage guidelines and manners",
+        "Smart utilization of Japanese Capsule Hotels or Business Hotels",
+    ],
+    "Myanmar": [
+        "ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်းနှင့် အိမ်ချက်ချက်ပြုတ်မှု အတွေ့အကြုံ",
+        "အများသုံးရေချိုးခန်း (Sento/Onsen) စည်းကမ်းနှင့် စနစ်တကျ ရေချိုးနည်း",
+        "ဒေသန္တရဘတ်စ်ကားများ စနစ်တကျစီးနင်းခြင်းနှင့် ကားခပေးချေနည်း",
+        "ဒေသတွင်း အီဇာကာယ (Izakaya) ဆိုင်များတွင် မှာယူနည်းနှင့် စည်းကမ်းများ",
+        "အကြွေစေ့သုံး အဝတ်လျှော်စက် (Coin Laundry) အသုံးပြုနည်း လမ်းညွှန်",
+        "ဂျပန်နိုင်ငံရှိ Capsule ဟိုတယ်များနှင့် စီးပွားရေးဟိုတယ်များကို စမတ်ကျကျ အသုံးပြုနည်း",
+    ],
+}
+
+# 3. Activity Row (Preference အကွက်အား လုံးဝဖယ်ရှားပြီးဖြစ်သည်)
+experience_type = str_web.selectbox(
+    tx["act_label"],
+    activity_mapping[current_lang],
     index=None,
-    placeholder="--- 選択してください ---",
+    placeholder=tx["act_holder"],
 )
 
-interests = str_web.text_input("こだわり条件 (Preference)", "Solo traveler")
-
-# --- 5. FUNCTIONAL SECTIONS ---
-str_web.markdown(
-    "<hr style='margin: 15px 0; border: none; border-top: 1px solid #ddd;'>",
-    unsafe_allow_html=True,
-)
-
+# --- MAPS TOOL ---
 if prefecture and city:
+    str_web.markdown("<br>", unsafe_allow_html=True)
     search_query = (
         city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
     )
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(
-        f'<iframe src="{map_url}" width="100%" height="220" style="border:0; border-radius:12px; box-shadow: 0px 2px 8px rgba(0,0,0,0.05);" allowfullscreen="" loading="lazy"></iframe>',
+        f'<iframe src="{map_url}" width="100%" height="180" style="border:0; border-radius:14px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);" allowfullscreen="" loading="lazy"></iframe>',
         unsafe_allow_html=True,
     )
-    str_web.write("")
+
+# ----------------- SECTION 3: FEATURES & TOOLS -----------------
+str_web.markdown(
+    f"<div class='section-title'>{tx['sec_other']}</div>", unsafe_allow_html=True
+)
 
 common_ai_config = types.GenerateContentConfig(
     temperature=0.7,
     system_instruction=(
         f"You are a hyper-local travel expert. Provide highly detailed, practical step-by-step guidance. "
         f"Strict Rule: Extract and show ONLY the most important main points using short bullet points. Do not write long paragraphs. "
-        f"When the output language is Myanmar, use natural, simple, modern colloquial Myanmar prose (စကားပြောဟန်) that is easy to read."
+        f"Output everything strictly in the language requested: {current_lang}."
     ),
 )
 
-# ----------------- BOX 1. LOCAL ETIGUETTE -----------------
-with str_web.expander("🗺️ 1. ローカルマナー＆ガイド"):
-    if str_web.button("📝 ガイドを生成", key="btn_guide"):
-        if not (prefecture and city and language and experience_type):
-            str_web.error("⚠️ 全ての項目を正しく選択してください！")
+# Box 1: Local Guide
+with str_web.expander(tx["guide_box"]):
+    if str_web.button(tx["guide_btn"], key="btn_guide"):
+        if not (prefecture and city and experience_type):
+            str_web.error(tx["error_select"])
         else:
-            with str_web.spinner("AIガイドを生成中..."):
-                prompt = f"Provide a short, bullet-point hyper-local travel guide for '{experience_type}' in {city}, {prefecture} for '{interests}'. Output language: {language}. Keep it brief, focus only on main points. Include 2-3 Google Maps links."
+            with str_web.spinner("Loading..."):
+                prompt = f"Provide a short, bullet-point hyper-local travel guide for '{experience_type}' in {city}, {prefecture}. Respond in {current_lang} language."
                 placeholder = str_web.empty()
                 full_text = ""
-                try:
-                    res_stream = client.models.generate_content_stream(
-                        model="gemini-2.5-flash",
-                        contents=prompt,
-                        config=common_ai_config,
-                    )
-                    for chunk in res_stream:
-                        full_text += chunk.text
-                        placeholder.markdown(full_text)
-                except Exception as e:
-                    str_web.error(f"Error: {e}")
+                for chunk in client.models.generate_content_stream(
+                    model="gemini-2.5-flash", contents=prompt, config=common_ai_config
+                ):
+                    full_text += chunk.text
+                    placeholder.markdown(full_text)
 
-# ----------------- BOX 2. WEATHER & OUTFIT -----------------
-with str_web.expander("☀️ 2. 現在の天気＆服装ガイド"):
-    if str_web.button("🌡️ 天気をチェック", key="btn_weather"):
-        if not (prefecture and city and language and experience_type):
-            str_web.error("⚠️ 全ての項目を正しく選択してください！")
-        else:
-            with str_web.spinner("天気情報を分析中..."):
-                prompt = f"Estimate seasonal weather trends for this month in {city}, {prefecture} for year 2026. Suggest clothes for '{experience_type}' using short bullet points. Output language: {language}."
-                placeholder = str_web.empty()
-                full_text = ""
-                try:
-                    res_stream = client.models.generate_content_stream(
-                        model="gemini-2.5-flash",
-                        contents=prompt,
-                        config=common_ai_config,
-                    )
-                    for chunk in res_stream:
-                        full_text += chunk.text
-                        placeholder.markdown(full_text)
-                except Exception as e:
-                    str_web.error(f"Error: {e}")
-
-# ----------------- BOX 3. CURRENCY CONVERTER -----------------
-with str_web.expander("💱 3. 通貨両替計算機"):
+# Box 2: Currency Converter
+with str_web.expander(tx["calc_box"]):
     currency_target = str_web.selectbox(
-        "通貨 (Currency)", ["MMK (Myanmar Kyat)", "USD (US Dollar)"], key="currency_box"
+        "Target Currency", ["MMK (Myanmar Kyat)", "USD (US Dollar)"]
     )
-    yen_amount = str_web.number_input("日本円 (JPY)", min_value=0, value=1000, step=500)
+    yen_amount = str_web.number_input(
+        "Amount in JPY", min_value=0, value=1000, step=500
+    )
+    if str_web.button(tx["calc_btn"], key="btn_calc"):
+        with str_web.spinner("Calculating..."):
+            prompt = f"Convert {yen_amount} JPY into {currency_target} using realistic 2026 rates. Explain what it can buy in {current_lang}."
+            placeholder = str_web.empty()
+            full_text = ""
+            for chunk in client.models.generate_content_stream(
+                model="gemini-2.5-flash", contents=prompt, config=common_ai_config
+            ):
+                full_text += chunk.text
+                placeholder.markdown(full_text)
 
-    if str_web.button("💰 両替計算する", key="btn_calc"):
-        if not (prefecture and city and language and experience_type):
-            str_web.error("⚠️ 上記の全ての項目をまず選択してください！")
-        else:
-            with str_web.spinner("計算中..."):
-                prompt = f"Convert {yen_amount} JPY into {currency_target} using realistic 2026 rates. Briefly explain what this can buy for '{experience_type}' in {city} in 2-3 short bullets. Output language: {language}."
-                placeholder = str_web.empty()
-                full_text = ""
-                try:
-                    res_stream = client.models.generate_content_stream(
-                        model="gemini-2.5-flash",
-                        contents=prompt,
-                        config=common_ai_config,
-                    )
-                    for chunk in res_stream:
-                        full_text += chunk.text
-                        placeholder.markdown(full_text)
-                except Exception as e:
-                    str_web.error(f"Error: {e}")
+# Box 3: SOS
+with str_web.expander(tx["sos_box"]):
+    if str_web.button(tx["sos_btn"], key="btn_sos"):
+        with str_web.spinner("Loading..."):
+            prompt = f"Provide Japan emergency numbers and 1 hospital near {city if city else 'Tokyo'} supporting foreigners. Output language: {current_lang}."
+            placeholder = str_web.empty()
+            full_text = ""
+            for chunk in client.models.generate_content_stream(
+                model="gemini-2.5-flash", contents=prompt, config=common_ai_config
+            ):
+                full_text += chunk.text
+                placeholder.markdown(full_text)
 
-# ----------------- BOX 4. EMERGENCY SOS -----------------
-with str_web.expander("🚨 4. 緊急連絡先＆対応病院"):
-    if str_web.button("🏥 緊急情報を表示", key="btn_sos"):
-        if not (prefecture and city and language):
-            str_web.error("⚠️ 都道府県、都市、言語を選択してください！")
-        else:
-            with str_web.spinner("検索中..."):
-                prompt = f"Provide Japan emergency numbers (110, 119) and 1-2 real hospitals near {city}, {prefecture} supporting foreigners/English using short bullets. Output language: {language}."
-                placeholder = str_web.empty()
-                full_text = ""
-                try:
-                    res_stream = client.models.generate_content_stream(
-                        model="gemini-2.5-flash",
-                        contents=prompt,
-                        config=common_ai_config,
-                    )
-                    for chunk in res_stream:
-                        full_text += chunk.text
-                        placeholder.markdown(full_text)
-                except Exception as e:
-                    str_web.error(f"Error: {e}")
-
-# --- 6. CAMERA SECTION ---
+# ----------------- SECTION 4: SMART CAMERA TRANSLATOR -----------------
 str_web.markdown(
-    "<hr style='margin: 15px 0; border: none; border-top: 1px solid #ddd;'>",
-    unsafe_allow_html=True,
-)
-str_web.markdown(
-    "<h3 style='font-size: 18px; color: #bc152b; font-weight: bold;'>📸 メニュー翻訳 ＆ 音声ガイド</h3>",
-    unsafe_allow_html=True,
+    f"<div class='section-title'>{tx['sec_cam']}</div>", unsafe_allow_html=True
 )
 
 if "show_camera" not in str_web.session_state:
     str_web.session_state.show_camera = False
 
 if not str_web.session_state.show_camera:
-    if str_web.button("📷 カメラを起動する", key="btn_cam_open"):
+    if str_web.button(tx["cam_btn_open"], key="btn_cam_open"):
         str_web.session_state.show_camera = True
         str_web.rerun()
 else:
-    if str_web.button("❌ カメラを閉じる", key="btn_cam_close"):
+    if str_web.button(tx["cam_btn_close"], key="btn_cam_close"):
         str_web.session_state.show_camera = False
         str_web.rerun()
 
 if str_web.session_state.show_camera:
-    uploaded_file = str_web.camera_input("Take a photo")
-
+    uploaded_file = str_web.camera_input("Scan Japanese Menu")
     if uploaded_file is not None:
-        str_web.image(uploaded_file, caption="撮影された画像", width=280)
+        str_web.image(uploaded_file, caption="Scanned Image", width=280)
 
-        if "menu_text" not in str_web.session_state:
-            str_web.session_state.menu_text = ""
-        if "japanese_phrase" not in str_web.session_state:
-            str_web.session_state.japanese_phrase = "これをお願いします"
-
-        if str_web.button("🥢 メニューを翻訳", key="btn_trans"):
-            if not language:
-                str_web.error("⚠️ 出力言語(Language)を選択してください！")
-            else:
-                with str_web.spinner("翻訳中..."):
-                    image_bytes = uploaded_file.getvalue()
-                    image_part = types.Part.from_bytes(
-                        data=image_bytes, mime_type="image/jpeg"
-                    )
-
-                    menu_prompt = f"""
-                    Translate this Japanese menu into {language}. Briefly explain dishes/ingredients using short bullet points.
-                    Extract 1 key phrase to order food (Write ONLY Japanese Kanji/Kana after 'PHRASE:', e.g., PHRASE:これをお願いします)
-                    """
-                    menu_placeholder = str_web.empty()
-                    menu_text = ""
-                    try:
-                        res_stream = client.models.generate_content_stream(
-                            model="gemini-2.5-flash",
-                            contents=[image_part, menu_prompt],
-                            config=common_ai_config,
-                        )
-                        for chunk in res_stream:
-                            menu_text += chunk.text
-                            menu_placeholder.markdown(menu_text)
-                        str_web.session_state.menu_text = menu_text
-                        if "PHRASE:" in menu_text:
-                            str_web.session_state.japanese_phrase = menu_text.split(
-                                "PHRASE:"
-                            )[-1].strip()
-                    except Exception as menu_err:
-                        str_web.error(f"Error: {menu_err}")
-
-        if str_web.session_state.menu_text:
-            str_web.write("🔊 **日本語の音声を再生:**")
-            if str_web.button("🗣️ 再生", key="btn_voice"):
-                try:
-                    tts = gTTS(text=str_web.session_state.japanese_phrase, lang="ja")
-                    sound_file = io.BytesIO()
-                    tts.write_to_fp(sound_file)
-                    str_web.audio(sound_file.getvalue(), format="audio/mp3")
-                except Exception as voice_err:
-                    str_web.error(f"Error: {voice_err}")
+        if str_web.button(tx["cam_trans"], key="btn_trans"):
+            with str_web.spinner("Translating..."):
+                image_part = types.Part.from_bytes(
+                    data=uploaded_file.getvalue(), mime_type="image/jpeg"
+                )
+                menu_prompt = f"Translate this Japanese menu into {current_lang}. Short bullet points only."
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(
+                    model="gemini-2.5-flash",
+                    contents=[image_part, menu_prompt],
+                    config=common_ai_config,
+                ):
+                    full_text += chunk.text
+                    placeholder.markdown(full_text)
