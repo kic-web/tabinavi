@@ -4,7 +4,7 @@ import streamlit as str_web
 from google import genai
 from google.genai import types
 
-# 🎨 Streamlit Configuration & Title
+# 🎨 Streamlit standard Page Configuration
 str_web.set_page_config(page_title="TabiNavi", layout="centered")
 
 # --- 🌐 MULTI-LANGUAGE DICTIONARY FOR UI ---
@@ -77,9 +77,9 @@ ui_translations = {
     },
 }
 
-# --- ⚙️ SIDEBAR SETTINGS (FotMob Style) ---
+# --- ⚙️ SIDEBAR SETTINGS (မျဉ်းသုံးကြောင်း Menu ထဲမှာပဲ အကုန်ထားပါတယ်) ---
 with str_web.sidebar:
-    str_web.markdown("### ⚙️ Settings")
+    str_web.markdown(f"## {ui_translations['English']['sidebar_title']}")
 
     # 1. Language Dropdown inside Sidebar
     language_options = {
@@ -88,87 +88,14 @@ with str_web.sidebar:
         "🇯🇵 日本語": "Japanese",
     }
     selected_lang_label = str_web.selectbox(
-        "Select interface language", list(language_options.keys()), index=0
+        "🌐 Language / 言語", list(language_options.keys()), index=0
     )
     current_lang = language_options[selected_lang_label]
     tx = ui_translations[current_lang]
 
-    str_web.markdown("<br>", unsafe_allow_html=True)
-
-    # 2. Theme Selector inside Sidebar
-    theme_choice = str_web.radio(
-        "Theme Mode", ["⚙️ System Default (Dark)", "☀️ Classic White"], index=0
-    )
-
-# --- 🎨 ULTRA PREMIUM CLEAN CSS INJECTION ---
-if "System Default (Dark)" in theme_choice:
-    # Beautiful FotMob Premium Dark UI
-    str_web.markdown(
-        """
-        <style>
-        .stApp { background-color: #0b0e11 !important; color: #ffffff !important; }
-        .block-container {
-            max-width: 430px !important;
-            padding: 25px 20px !important;
-            background-color: #111417 !important;
-            border-radius: 24px;
-            box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.6);
-            margin-top: 20px;
-        }
-        h1, h2, h3, p, label { color: #ffffff !important; font-family: -apple-system, sans-serif; }
-        div[data-baseweb="select"] > div, .stTextInput div div input {
-            background-color: #1c2024 !important;
-            border: 1px solid #2c3136 !important;
-            border-radius: 16px !important;
-            color: #ffffff !important;
-        }
-        div[data-baseweb="popover"] ul { background-color: #1c2024 !important; }
-        div[data-baseweb="popover"] li { color: #ffffff !important; background-color: #1c2024 !important; }
-        div[data-baseweb="popover"] li:hover { background-color: #2c3136 !important; }
-        .streamlit-expanderHeader { 
-            background-color: #1c2024 !important; 
-            color: #ffffff !important; 
-            border-radius: 16px !important; 
-            border: 1px solid #2c3136 !important;
-            margin-bottom: 10px;
-            padding: 12px !important;
-        }
-        .streamlit-expanderContent { background-color: #1c2024 !important; color: #ffffff !important; border-radius: 16px; }
-        div.stButton > button:first-child { 
-            background-color: #22c55e !important; 
-            color: white !important; 
-            border-radius: 14px !important; 
-            border: none !important;
-            width: 100%; 
-            font-weight: bold;
-        }
-        hr { border-color: #2c3136 !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-else:
-    # Clean Classic White UI
-    str_web.markdown(
-        """
-        <style>
-        .stApp { background-color: #f4f6f9 !important; color: #1c1c1e !important; }
-        .block-container {
-            max-width: 430px !important;
-            padding: 25px 20px !important;
-            background-color: #ffffff !important;
-            border-radius: 24px;
-            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.05);
-            margin-top: 20px;
-        }
-        h1, p, label { color: #1c1c1e !important; font-family: -apple-system, sans-serif; }
-        div[data-baseweb="select"] > div { background-color: #f2f4f7 !important; border-radius: 16px !important; }
-        .streamlit-expanderHeader { background-color: #f2f4f7 !important; color: #1c1c1e !important; border-radius: 16px !important; margin-bottom: 10px; }
-        .streamlit-expanderContent { background-color: #f2f4f7 !important; color: #1c1c1e !important; }
-        div.stButton > button:first-child { background-color: #007aff !important; color: white !important; border-radius: 14px !important; width: 100%; font-weight: bold; }
-        </style>
-        """,
-        unsafe_allow_html=True,
+    str_web.markdown("---")
+    str_web.info(
+        "💡 Light/Dark mode can also be fully automated via your browser or Streamlit Settings menu (Top right 3 dots)."
     )
 
 # --- API CLIENT & DATA SETUP ---
@@ -187,15 +114,9 @@ if os.path.exists("japan_data.json"):
     except Exception as e:
         str_web.error(f"JSON Data Error: {e}")
 
-# --- MAIN APP DISPLAY ---
-str_web.markdown(
-    f"<h1 style='text-align: center; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;'>{tx['title']}</h1>",
-    unsafe_allow_html=True,
-)
-str_web.markdown(
-    f"<p style='text-align: center; font-size: 13px; color: #8e8e93; margin-bottom: 30px; line-height: 1.4;'>{tx['sub']}</p>",
-    unsafe_allow_html=True,
-)
+# --- MAIN APP DISPLAY (Clean Native Design) ---
+str_web.title(tx["title"])
+str_web.caption(tx["sub"])
 
 # 1. Prefecture Dropdown
 prefecture = str_web.selectbox(
@@ -214,16 +135,13 @@ if prefecture:
 else:
     city = None
     str_web.markdown(
-        f"<p style='font-size: 12px; color: #8e8e93; margin-left:5px;'>{tx['city_warn']}</p>",
+        f"<p style='font-size: 13px; color: gray; margin-left:5px;'>{tx['city_warn']}</p>",
         unsafe_allow_html=True,
     )
 
 # --- SECTION 2: TRIP ACTIVITIES ---
-str_web.markdown("<hr>", unsafe_allow_html=True)
-str_web.markdown(
-    f"<div style='font-size:16px; font-weight:700; margin-bottom:12px; letter-spacing: -0.2px;'>{tx['sec_trip']}</div>",
-    unsafe_allow_html=True,
-)
+str_web.markdown("---")
+str_web.subheader(tx["sec_trip"])
 
 activity_mapping = {
     "English": [
@@ -267,7 +185,7 @@ if prefecture and city:
     )
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(
-        f'<iframe src="{map_url}" width="100%" height="160" style="border:0; border-radius:16px;" allowfullscreen="" loading="lazy"></iframe>',
+        f'<iframe src="{map_url}" width="100%" height="180" style="border:0; border-radius:10px;" allowfullscreen="" loading="lazy"></iframe>',
         unsafe_allow_html=True,
     )
 
@@ -295,7 +213,7 @@ with str_web.expander(tx["guide_box"]):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-# Box 2: Weather & Clothing Guide (ပြန်လည်ထည့်သွင်းထားသည်)
+# Box 2: Weather & Clothing Guide
 with str_web.expander(tx["weather_box"]):
     if str_web.button(tx["weather_btn"], key="btn_weather"):
         if not (prefecture and city):
