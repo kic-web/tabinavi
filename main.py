@@ -6,7 +6,7 @@ from google.genai import types
 from PIL import Image
 
 # 🎨 Streamlit Configuration (Clean & Modern Layout)
-str_web.set_page_config(page_title="TabiNavi Pro AI", layout="centered")
+str_web.set_page_config(page_title="TabiNavi", layout="centered")
 
 # Initialize Session States
 if "bookmarks" not in str_web.session_state:
@@ -14,10 +14,10 @@ if "bookmarks" not in str_web.session_state:
 if "expenses" not in str_web.session_state:
     str_web.session_state.expenses = []
 
-# --- 🌐 MULTI-LANGUAGE DICTIONARY (Cleaned: Numbers & Excess Emojis Removed) ---
+# --- 🌐 MULTI-LANGUAGE DICTIONARY (Premium Branding Applied) ---
 ui_translations = {
     "English": {
-        "title": "TabiNavi Pro AI",
+        "title": "TabiNavi",
         "sub": "Your Next-Gen AI Travel Companion",
         "pref_label": "Select Prefecture",
         "pref_holder": "Choose a prefecture...",
@@ -28,7 +28,7 @@ ui_translations = {
         "food_btn": "Food & Dining",
         "hotel_btn": "Hotel Booking",
         "itinerary_btn": "3-Day Planner",
-        "sec_ai_tools": "Advanced AI Tools",
+        "sec_ai_tools": "✨ TabiNavi Concierge",
         "cam_box": "Smart Camera Translator",
         "cam_upload": "Upload menu or signboard image...",
         "text_box": "Text/Speech Translator",
@@ -52,7 +52,7 @@ ui_translations = {
         "sidebar_title": "Control Panel",
     },
     "Myanmar": {
-        "title": "TabiNavi Pro AI",
+        "title": "TabiNavi",
         "sub": "အဆင့်မြင့် AI စနစ်သုံး အိတ်ဆောင်ခရီးသွားလမ်းညွှန်",
         "pref_label": "ပြည်နယ်/ခရိုင် ကို ရွေးချယ်ပါ",
         "pref_holder": "ခရိုင်တစ်ခု ရွေးချယ်ပေးပါ...",
@@ -63,7 +63,7 @@ ui_translations = {
         "food_btn": "အစားအသောက်ဆိုင်",
         "hotel_btn": "ဟိုတယ်တည်းခိုခန်း",
         "itinerary_btn": "၃ ရက်စာ ခရီးစဉ်",
-        "sec_ai_tools": "အဆင့်မြင့် AI ကိရိယာများ",
+        "sec_ai_tools": "✨ TabiNavi စမတ်ဝန်ဆောင်မှု",
         "cam_box": "Smart ကင်မရာ ဘာသာပြန်စနစ်",
         "cam_upload": "မီနူး သို့မဟုတ် ဆိုင်းဘုတ်ပုံရိပ် တင်ပေးပါ...",
         "text_box": "အချိန်နဲ့တပြေးညီ ဘာသာပြန်",
@@ -88,8 +88,7 @@ ui_translations = {
     },
 }
 
-# --- ⚙️ SIDEBAR SETUP (ရွှေ့ပြောင်းခြင်း) ---
-# တစ်ခါတလေမှသုံးမယ့် Advanced AI Tools တွေကို Sidebar ထဲရွှေ့ပြီး Main Screen ကို ရှင်းထုတ်လိုက်ပါတယ်
+# --- ⚙️ SIDEBAR SETUP ---
 with str_web.sidebar:
     str_web.markdown(f"### ⚙️ {ui_translations['English']['sidebar_title']}")
     language_options = {"🇺🇸 English": "English", "🇲🇲 Myanmar (မြန်မာ)": "Myanmar"}
@@ -100,7 +99,7 @@ with str_web.sidebar:
     tx = ui_translations[current_lang]
 
     str_web.markdown("---")
-    str_web.markdown(f"### 🧠 {tx['sec_ai_tools']}")
+    str_web.markdown(f"### {tx['sec_ai_tools']}")
 
     # 📸 Smart Camera Translator (Sidebar Inside)
     with str_web.expander(tx["cam_box"]):
@@ -111,7 +110,6 @@ with str_web.sidebar:
             image = Image.open(uploaded_file)
             str_web.image(image, caption="Uploaded Image", use_container_width=True)
             if str_web.button("🔍 Translate Image", use_container_width=True):
-                # Setup api client inside sidebar logic if triggered
                 api_key = str_web.secrets.get("GEMINI_API_KEY")
                 if api_key:
                     client = genai.Client(api_key=api_key)
@@ -156,7 +154,7 @@ if os.path.exists("japan_data.json"):
 str_web.title(tx["title"])
 str_web.caption(tx["sub"])
 
-# 1. Location Filters (Side-by-Side Columns for cleaner look)
+# Location Filters
 col_pref, col_city = str_web.columns(2)
 with col_pref:
     prefecture = str_web.selectbox(
@@ -188,9 +186,7 @@ common_ai_config = types.GenerateContentConfig(
     system_instruction=f"Respond using concise, short bullet points. Output language: {current_lang}.",
 )
 
-# ----------------------------------------------------------------------
-# ⚡ CONDITIONAL VISIBILITY (Prefecture/City မရွေးရသေးရင် အောက်က Features တွေကို ဝှက်ထားပေးခြင်း)
-# ----------------------------------------------------------------------
+# --- CONDITIONAL VISIBILITY ---
 if not (prefecture and city):
     str_web.markdown("---")
     str_web.info(
@@ -199,14 +195,14 @@ if not (prefecture and city):
 else:
     loc_context = f"{city}, {prefecture}"
 
-    # 🚀 Quick Travel Services Section (2x2 Grid Layout with Full-Width Buttons)
+    # Quick Travel Services Section
     str_web.markdown("---")
     str_web.subheader(tx["sec_quick"])
 
     row1_col1, row1_col2 = str_web.columns(2)
     with row1_col1:
         if str_web.button(tx["train_btn"], use_container_width=True):
-            with str_web.spinner("🧠 Connecting AI..."):
+            with str_web.spinner("Connecting AI..."):
                 placeholder = str_web.empty()
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
@@ -219,7 +215,7 @@ else:
 
     with row1_col2:
         if str_web.button(tx["food_btn"], use_container_width=True):
-            with str_web.spinner("🧠 Connecting AI..."):
+            with str_web.spinner("Connecting AI..."):
                 placeholder = str_web.empty()
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
@@ -233,7 +229,7 @@ else:
     row2_col1, row2_col2 = str_web.columns(2)
     with row2_col1:
         if str_web.button(tx["hotel_btn"], use_container_width=True):
-            with str_web.spinner("🧠 Connecting AI..."):
+            with str_web.spinner("Connecting AI..."):
                 placeholder = str_web.empty()
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
@@ -246,7 +242,7 @@ else:
 
     with row2_col2:
         if str_web.button(tx["itinerary_btn"], use_container_width=True):
-            with str_web.spinner("🧠 Connecting AI..."):
+            with str_web.spinner("Connecting AI..."):
                 placeholder = str_web.empty()
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
@@ -257,14 +253,14 @@ else:
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-    # 📌 Bookmark Action Bar
+    # Bookmark Action Bar
     if str_web.button(f"📌 Save {city} to Bookmarks", use_container_width=True):
         bookmark_item = f"{city} ({prefecture})"
         if bookmark_item not in str_web.session_state.bookmarks:
             str_web.session_state.bookmarks.append(bookmark_item)
             str_web.toast(f"Saved {city}!")
 
-    # 🗺️ Maps Integration
+    # Maps Integration
     search_query = (
         city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
     )
@@ -274,7 +270,7 @@ else:
         unsafe_allow_html=True,
     )
 
-    # 🌤️ Currency & Weather Section (No Expanders - Exposed directly as requested)
+    # Currency & Weather Section
     str_web.markdown("---")
     col_w, col_c = str_web.columns(2)
 
@@ -313,7 +309,7 @@ else:
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-    # 🎯 Activities & Etiquette Section
+    # Activities & Etiquette Section
     str_web.markdown("---")
     str_web.subheader(tx["sec_trip"])
 
@@ -350,7 +346,7 @@ else:
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-    # 🛡️ Utilities & Pro Utilities (Disaster, SOS, Expense, Bookmarks)
+    # Utilities & Pro Utilities
     str_web.markdown("---")
     str_web.subheader(tx["sec_utilities"])
 
@@ -374,7 +370,7 @@ else:
                         placeholder.markdown(full_text)
         with col_dis:
             if str_web.button(tx["safety_btn"], use_container_width=True):
-                with str_web.spinner("🚨 Loading..."):
+                with str_web.spinner("Loading..."):
                     placeholder = str_web.empty()
                     full_text = ""
                     for chunk in client.models.generate_content_stream(
