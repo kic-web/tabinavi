@@ -86,12 +86,51 @@ ui_translations = {
         "sos_btn": "အရေးပေါ် အချက်အလက်ပြပါ",
         "sidebar_title": "ထိန်းချုပ်ရေးခန်း",
     },
+    "Japanese": {
+        "title": "TabiNavi",
+        "sub": "次世代AI旅行コンパニオン",
+        "pref_label": "都道府県を選択",
+        "pref_holder": "都道府県 を選択してください...",
+        "city_label": "市区町村を選択",
+        "city_holder": "市区町村 を選択してください...",
+        "sec_quick": "クイック旅行サービス",
+        "train_btn": "電車の乗換案内",
+        "food_btn": "グルメ・周辺の飲食店",
+        "hotel_btn": "おすすめの宿泊エリア",
+        "itinerary_btn": "3日間おすすめプラン",
+        "sec_ai_tools": "✨ TabiNaviコンシェルジュ",
+        "cam_box": "スマートカメラ翻訳",
+        "cam_upload": "メニューや看板の画像をアップロード...",
+        "text_box": "リアルタイム翻訳",
+        "text_input": "翻訳するテキストを入力...",
+        "sec_utilities": "旅行ユーティリティ",
+        "safety_box": "災害・防災ガイド",
+        "safety_btn": "避難案内を取得",
+        "expense_box": "旅費の家計簿",
+        "bookmark_box": "お気に入り保存場所",
+        "sec_trip": "アクティビティ & マナーガイド",
+        "act_label": "アクティビティの種類を選択",
+        "act_holder": "アクティビティを選択...",
+        "guide_box": "ローカルマナーガイド",
+        "guide_btn": "ガイドを生成",
+        "weather_box": "天気・服装ガイド",
+        "weather_btn": "天気をチェック",
+        "calc_box": "通貨換算ツール",
+        "calc_btn": "換算する",
+        "sos_box": "緊急連絡先 & 病院案内",
+        "sos_btn": "緊急情報を表示",
+        "sidebar_title": "コントロールパネル",
+    },
 }
 
 # --- ⚙️ SIDEBAR SETUP ---
 with str_web.sidebar:
     str_web.markdown(f"### ⚙️ {ui_translations['English']['sidebar_title']}")
-    language_options = {"🇺🇸 English": "English", "🇲🇲 Myanmar (မြန်မာ)": "Myanmar"}
+    language_options = {
+        "🇺🇸 English": "English",
+        "🇲🇲 Myanmar (မြန်မာ)": "Myanmar",
+        "🇯🇵 Japanese": "Japanese",
+    }
     selected_lang_label = str_web.selectbox(
         "🌐 Language", list(language_options.keys()), index=0
     )
