@@ -147,7 +147,11 @@ with str_web.sidebar:
         )
         if uploaded_file is not None:
             image = Image.open(uploaded_file)
-            str_web.image(image, caption="Uploaded Image", use_container_width=True)
+            str_web.image(
+                image,
+                caption="Uploaded Image",
+                use_container_width=True,
+            )
             if str_web.button("🔍 Translate Image", use_container_width=True):
                 api_key = str_web.secrets.get("GEMINI_API_KEY")
                 if api_key:
@@ -172,7 +176,7 @@ with str_web.sidebar:
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
                     model="gemini-2.5-flash",
-                    contents=f"Translate into Japanese with Romaji: '{input_text}'",
+                    contents=(f"Translate into Japanese with Romaji: '{input_text}'"),
                 ):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
@@ -222,14 +226,18 @@ with col_city:
 
 common_ai_config = types.GenerateContentConfig(
     temperature=0.7,
-    system_instruction=f"Respond using concise, short bullet points. Output language: {current_lang}.",
+    system_instruction=(
+        "Respond using concise, short bullet points. "
+        f"Output language: {current_lang}."
+    ),
 )
 
 # --- CONDITIONAL VISIBILITY ---
 if not (prefecture and city):
     str_web.markdown("---")
     str_web.info(
-        "💡 Please select both Prefecture and City above to unlock travel assistance tools."
+        "💡 Please select both Prefecture and City above to unlock "
+        "travel assistance tools."
     )
 else:
     loc_context = f"{city}, {prefecture}"
@@ -273,7 +281,7 @@ else:
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
                     model="gemini-2.5-flash",
-                    contents=f"Recommend best hotel stay areas in {loc_context}.",
+                    contents=(f"Recommend best hotel stay areas in {loc_context}."),
                     config=common_ai_config,
                 ):
                     full_text += chunk.text
@@ -303,9 +311,15 @@ else:
     search_query = (
         city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
     )
-    map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
+    map_url = (
+        "https://maps.google.com/maps?"
+        f"q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
+    )
     str_web.markdown(
-        f'<iframe src="{map_url}" width="100%" height="200" style="border:0; border-radius:12px;"></iframe>',
+        (
+            f'<iframe src="{map_url}" width="100%" height="200" '
+            'style="border:0; border-radius:12px;"></iframe>'
+        ),
         unsafe_allow_html=True,
     )
 
@@ -321,7 +335,10 @@ else:
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
                     model="gemini-2.5-flash",
-                    contents=f"Provide 2026 current month weather and clothing for {loc_context}.",
+                    contents=(
+                        "Provide 2026 current month weather and clothing "
+                        f"for {loc_context}."
+                    ),
                     config=common_ai_config,
                 ):
                     full_text += chunk.text
@@ -342,7 +359,7 @@ else:
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
                     model="gemini-2.5-flash",
-                    contents=f"Convert {yen_amount} JPY to MMK/USD with 2026 rates.",
+                    contents=(f"Convert {yen_amount} JPY to MMK/USD with 2026 rates."),
                     config=common_ai_config,
                 ):
                     full_text += chunk.text
@@ -359,7 +376,7 @@ else:
             "Riding local buses and fares",
         ],
         "Myanmar": [
-            "ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်း",
+            ("ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်း"),
             "အများသုံးရေချိုးခန်း (Onsen) စည်းကမ်းများ",
             "ဒေသန္တရဘတ်စ်ကားများ စီးနင်းခြင်း",
         ],
@@ -379,7 +396,10 @@ else:
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
                     model="gemini-2.5-flash",
-                    contents=f"Provide etiquette guide for '{experience_type}' in {loc_context}.",
+                    contents=(
+                        f"Provide etiquette guide for '{experience_type}' "
+                        f"in {loc_context}."
+                    ),
                     config=common_ai_config,
                 ):
                     full_text += chunk.text
@@ -402,7 +422,10 @@ else:
                     full_text = ""
                     for chunk in client.models.generate_content_stream(
                         model="gemini-2.5-flash",
-                        contents=f"Provide Japan emergency numbers and 1 foreign-friendly hospital near {city}.",
+                        contents=(
+                            "Provide Japan emergency numbers and 1 "
+                            f"foreign-friendly hospital near {city}."
+                        ),
                         config=common_ai_config,
                     ):
                         full_text += chunk.text
@@ -414,7 +437,10 @@ else:
                     full_text = ""
                     for chunk in client.models.generate_content_stream(
                         model="gemini-2.5-flash",
-                        contents=f"Provide disaster evacuation tips for tourists in {city}.",
+                        contents=(
+                            f"Provide disaster evacuation tips for tourists "
+                            f"in {city}."
+                        ),
                         config=common_ai_config,
                     ):
                         full_text += chunk.text
@@ -430,7 +456,10 @@ else:
             )
         with col_cost:
             exp_amt = str_web.number_input(
-                "Amount (JPY)", min_value=0, step=100, label_visibility="collapsed"
+                "Amount (JPY)",
+                min_value=0,
+                step=100,
+                label_visibility="collapsed",
             )
         if str_web.button("➕ Add Expense", use_container_width=True):
             if exp_name and exp_amt > 0:
