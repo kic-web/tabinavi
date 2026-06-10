@@ -1,13 +1,14 @@
 /**
- * TabiNavi Concierge - プレミアム旅行システム用スタイルシート
- * ターゲット: モバイルおよびPCのレスポンシブデザインの最適化
+ * TabiNavi Concierge - 完全版スタイルシート
+ * デバイスのダーク・ライトモードに影響されない絶対視認性設計
  */
 
 /* ==========================================
-   1. 全体設定 & アプリ基本背景
+   1. 全体背景 & 視認性強制リセット (PC/モバイル共通)
    ========================================== */
 .stApp {
-    background-color: #EBF2F2 !important;
+    background-color: #F8FAFC !important;
+    /* 明るいライトグレーで統一 */
     font-family: 'Inter', -apple-system, sans-serif;
 }
 
@@ -15,7 +16,7 @@
    2. ヘッダーエリア (トップバー)
    ========================================== */
 .custom-header {
-    background: linear-gradient(135deg, #1A4D4E 0%, #2E7D76 100%);
+    background: linear-gradient(135deg, #1A4D4E 0%, #2E7D76 100%) !important;
     padding: 20px 30px;
     border-radius: 12px;
     display: flex;
@@ -30,32 +31,53 @@
     font-size: 26px !important;
     font-weight: 700 !important;
     margin: 0 !important;
-    padding: 0 !important;
-}
-
-.logo-placeholder {
-    font-size: 28px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 6px 12px;
-    border-radius: 50%;
 }
 
 /* ==========================================
-   3. サイドバーの設定
+   3. 全テキスト・タイトルの一斉強制カラー設定 (最重要)
    ========================================== */
-section[data-testid="stSidebar"] {
-    background-color: #FFFFFF !important;
-    box-shadow: 2px 0px 15px rgba(0, 0, 0, 0.05);
-    border-right: 1px solid #E0E7E7;
+/* アプリ内の全見出し・全テキストをダークカラーに強制固定 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+li,
+span,
+label,
+div {
+    color: #0F172A !important;
+    /* 漆黒に近い紺色：背景がどう変わっても絶対に見える色 */
+}
+
+/* ヘッダー内の文字だけは白をキープ */
+.custom-header h1,
+.custom-header p,
+.custom-header span {
+    color: #FFFFFF !important;
+}
+
+/* セクションタイトルをさらに太く、明瞭に */
+h2,
+h3,
+[data-testid="stMarkdownContainer"] h2,
+[data-testid="stMarkdownContainer"] h3 {
+    color: #1E293B !important;
+    font-weight: 700 !important;
+    margin-top: 20px !important;
+    margin-bottom: 10px !important;
 }
 
 /* ==========================================
-   4. クイックサービス用カードUI
+   4. クイックサービス用カードUI のリメイク
    ========================================== */
 .service-card {
-    background: #F4EBE1 !important;
-    border: 1px solid #E6DCD0;
-    border-radius: 16px;
+    background-color: #F1F5F9 !important;
+    /* モバイルでも潰れない安定の背景色 */
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 12px;
     padding: 15px 20px;
     display: flex;
     align-items: center;
@@ -63,104 +85,60 @@ section[data-testid="stSidebar"] {
     margin-top: 10px;
 }
 
-.service-icon {
-    font-size: 28px;
-    background: #FFFFFF;
-    padding: 8px 12px;
-    border-radius: 12px;
-}
-
 .service-info h4 {
     margin: 0 !important;
-    color: #3A332A !important;
-    /* カード背景に合わせたダークウォルナット */
+    color: #0F172A !important;
     font-size: 18px !important;
-    font-weight: 600;
-}
-
-/* ==========================================
-   5. ボタン要素の共通カスタマイズ
-   ========================================== */
-div.stButton>button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-}
-
-/* お気に入り登録ボタン専用のスタイル */
-.bookmark-container div.stButton>button {
-    background-color: #FFFFFF !important;
-    color: #2E7D76 !important;
-    border: 1px solid #2E7D76 !important;
-    width: 100% !important;
-    padding: 10px 0 !important;
-    margin-top: 15px;
-    margin-bottom: 15px;
-}
-
-/* ==========================================
-   6. 埋め込みマップとユーティリティカード
-   ========================================== */
-iframe {
-    border-radius: 16px !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid #E0E7E7 !important;
-}
-
-.utility-card {
-    background: #FFFFFF !important;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-}
-
-/* ==========================================
-   7. 視認性改善用テキストカラー設計 (プレミアム配色)
-   ========================================== */
-/* メインタイトル・セクション見出し */
-h2,
-h3,
-.stApp h2,
-.stApp h3 {
-    color: #1E293B !important;
-    /* チャコールスレート: 視認性が高く洗練された印象 */
     font-weight: 700 !important;
-    letter-spacing: -0.5px;
 }
 
-/* セレクトボックス等のラベル */
-label,
-p[data-testid="stWidgetLabel"] {
-    color: #475569 !important;
-    /* スチールグレー: 目立ちすぎず自然な配置 */
-    font-weight: 500 !important;
-}
-
-/* カード内のタイトル */
-.utility-card h6,
-h4,
-h5,
-h6 {
-    color: #3A332A !important;
+/* ==========================================
+   5. 入力ボックス、セレクトボックスの文字調整
+   ========================================== */
+/* セレクトボックスのラベル文字 */
+p[data-testid="stWidgetLabel"] label {
+    color: #334155 !important;
     font-weight: 600 !important;
+    font-size: 15px !important;
 }
 
-/* AI生成テキスト・マークダウン出力・リスト項目 */
-.stMarkdown,
-.stMarkdown p,
-li {
-    color: #2D3748 !important;
-    /* ソフトチャコール: 長文でも可読性が高い配色 */
-    line-height: 1.6 !important;
+/* ドロップダウン内の選択文字の強制黒化 */
+div[data-baseweb="select"] div {
+    color: #0F172A !important;
 }
 
-/* タブメニューのテキスト設定 */
+/* ==========================================
+   6. ユーティリティカード & タブ
+   ========================================== */
+.utility-card {
+    background-color: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.utility-card h6 {
+    color: #1E293B !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+}
+
+/* タブメニューの文字 */
 button[data-baseweb="tab"] div {
-    color: #4A5568 !important;
+    color: #334155 !important;
     font-weight: 600 !important;
 }
 
-/* スパン要素の初期化 */
-span {
-    color: inherit;
+/* ==========================================
+   7. AI生成テキストボックスの背景色調整
+   ========================================== */
+.stAlert,
+div[data-testid="stNotification"] {
+    background-color: #E2E8F0 !important;
+    border: 1px solid #CBD5E1 !important;
+}
+
+.stAlert p {
+    color: #0F172A !important;
 }
