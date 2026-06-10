@@ -97,3 +97,29 @@ iframe {
     padding: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
+
+/* 🔧 စာသားအရောင်များ အားလုံးကို ထင်ထင်ရှားရှား မြင်ရအောင် ပြင်ဆင်ခြင်း */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+label,
+.stMarkdown {
+    color: #1A4D4E !important;
+    /* စာသားအရောင်ကို အမည်းရောင်/အစိမ်းရင့်ရောင် ဘက်သို့ ပြောင်းလဲခြင်း */
+}
+
+/* Streamlit ကတ်ပြားအတွင်းရှိ ခေါင်းစဉ်များကို အရောင်ပြန်တင်ပေးခြင်း */
+.utility-card h6,
+.service-info h4 {
+    color: #2C3E50 !important;
+}
+
+/* Tab ခေါင်းစဉ်များ အရောင်ရှင်းလင်းစေရန် */
+button[data-baseweb="tab"] div {
+    color: #1A4D4E !important;
+}
