@@ -1,0 +1,99 @@
+/* style.css */
+
+/* Global Background Override */
+.stApp {
+    background-color: #EBF2F2 !important;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Top Full-Width Header Bar */
+.custom-header {
+    background: linear-gradient(135deg, #1A4D4E 0%, #2E7D76 100%);
+    padding: 20px 30px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(26, 77, 78, 0.15);
+}
+
+.custom-header h1 {
+    color: #FFFFFF !important;
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.logo-placeholder {
+    font-size: 28px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 50%;
+}
+
+/* Sidebar Refinements */
+section[data-testid="stSidebar"] {
+    background-color: #FFFFFF !important;
+    box-shadow: 2px 0px 15px rgba(0, 0, 0, 0.05);
+    border-right: 1px solid #E0E7E7;
+}
+
+/* Quick Travel Services - Cards Styling */
+.service-card {
+    background: #F4EBE1 !important;
+    border: 1px solid #E6DCD0;
+    border-radius: 16px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.service-icon {
+    font-size: 28px;
+    background: #FFFFFF;
+    padding: 8px 12px;
+    border-radius: 12px;
+}
+
+.service-info h4 {
+    margin: 0 !important;
+    color: #2C3E50 !important;
+    font-size: 18px !important;
+    font-weight: 600;
+}
+
+/* Streamlit Button Custom Modifications */
+div.stButton>button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+}
+
+.bookmark-container div.stButton>button {
+    background-color: #FFFFFF !important;
+    color: #2E7D76 !important;
+    border: 1px solid #2E7D76 !important;
+    width: 100% !important;
+    padding: 10px 0 !important;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+/* Embedded Map Container Rounding */
+iframe {
+    border-radius: 16px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E0E7E7 !important;
+}
+
+/* Output Container Cards Styling */
+.utility-card {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
