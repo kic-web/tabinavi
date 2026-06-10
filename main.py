@@ -27,7 +27,7 @@ ui_translations = {
         "train_btn": "Train & Routes",
         "food_btn": "Food & Dining",
         "hotel_btn": "Hotel Booking",
-        "itinerary_btn": "3-Day Planner",
+        "itinerary_btn": "Planner",
         "sec_ai_tools": "✨ TabiNavi Concierge",
         "cam_box": "Smart Camera Translator",
         "cam_upload": "Upload menu or signboard image...",
@@ -62,7 +62,7 @@ ui_translations = {
         "train_btn": "ရထားလမ်းကြောင်း",
         "food_btn": "အစားအသောက်ဆိုင်",
         "hotel_btn": "ဟိုတယ်တည်းခိုခန်း",
-        "itinerary_btn": "၃ ရက်စာ ခရီးစဉ်",
+        "itinerary_btn": "ခရီးစဉ်အကြံပြုချက်",
         "sec_ai_tools": "✨ TabiNavi စမတ်ဝန်ဆောင်မှု",
         "cam_box": "Smart ကင်မရာ ဘာသာပြန်စနစ်",
         "cam_upload": "မီနူး သို့မဟုတ် ဆိုင်းဘုတ်ပုံရိပ် တင်ပေးပါ...",
@@ -97,7 +97,7 @@ ui_translations = {
         "train_btn": "電車の乗換案内",
         "food_btn": "グルメ・周辺の飲食店",
         "hotel_btn": "おすすめの宿泊エリア",
-        "itinerary_btn": "3日間おすすめプラン",
+        "itinerary_btn": "おすすめプラン",
         "sec_ai_tools": "✨ TabiNaviコンシェルジュ",
         "cam_box": "スマートカメラ翻訳",
         "cam_upload": "メニューや看板の画像をアップロード...",
@@ -273,6 +273,39 @@ else:
                     full_text += chunk.text
                     placeholder.success(full_text)
 
+    # 滞在日数選択用のマルチランゲージ設定
+    label_mapping = {
+        "English": "Select Duration",
+        "Myanmar": "ခရီးစဉ်ရက်အရေအတွက် ရွေးချယ်ပါ",
+        "Japanese": "滞在日数を選択してください"
+    }
+
+    options_mapping = {
+        "English": ["1 Day", "2 Days", "3 Days", "4 Days", "5 Days", "6 Days", "7 Days"],
+        "Myanmar": ["1 ရက်စာ", "2 ရက်စာ", "3 ရက်စာ", "4 ရက်စာ", "5 ရက်စာ", "6 ရက်စာ", "7 ရက်စာ"],
+        "Japanese": ["1日間", "2日間", "3日間", "4日間", "5日間", "6日間", "7日間"]
+    }
+
+    # セレクトボックスと生成ボタンのレイアウト配置
+    col_days, col_action = str_web.columns([1, 1])
+    
+    with col_days:
+        selected_days = str_web.selectbox(
+            label=label_mapping.get(current_lang, label_mapping["English"]),
+            options=options_mapping.get(current_lang, options_mapping["English"]),
+            index=2,  # デフォルトは3日間
+            key="travel_days_selector",
+            label_visibility="collapsed"
+        )
+
+    # 動的なボタンラベルの生成
+    btn_label_mapping = {
+        "English": f"Generate {selected_days} Plan",
+        "Myanmar": f"{selected_days} ခရီးစဉ်အကြံပြုချက်ကို ဖန်တီးပါ",
+        "Japanese": f"{selected_days}{tx['itinerary_btn']}を生成"
+    }
+    btn_text = btn_label_mapping.get(current_lang, btn_label_mapping["English"])
+
     row2_col1, row2_col2 = str_web.columns(2)
     with row2_col1:
         if str_web.button(tx["hotel_btn"], use_container_width=True):
@@ -288,13 +321,15 @@ else:
                     placeholder.warning(full_text)
 
     with row2_col2:
-        if str_web.button(tx["itinerary_btn"], use_container_width=True):
+        if str_web.button(btn_text, use_container_width=True):
             with str_web.spinner("Connecting AI..."):
+                # 選択肢の文字列から数字のみを抽出 (例: "3日間" -> "3")
+                days_number = "".join(filter(str.isdigit, selected_days))
                 placeholder = str_web.empty()
                 full_text = ""
                 for chunk in client.models.generate_content_stream(
                     model="gemini-2.5-flash",
-                    contents=f"Create 3-day itinerary for {loc_context}.",
+                    contents=f"Create {days_number}-day itinerary for {loc_context}.",
                     config=common_ai_config,
                 ):
                     full_text += chunk.text
@@ -384,7 +419,7 @@ else:
         "Myanmar": [
             ("ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်း၊"),
             ("အများသုံးရေချိုးခန်း (Onsen) စည်းကမ်းများ၊"),
-            ("ဒေသန္တရဘတ်စ်ကားများ စီးနင်းခြင်း၊"),
+            ("ဒေသတွင်းဘတ်စ်ကားများ စီးနင်းခြင်း၊"),
             ("ဘုရားကျောင်းများနှင့် နတ်ကွန်းများသို့ လည်ပတ်ခြင်း၊"),
             ("ကျည်ဆန်ရထားနှင့် အများပြည်သူသုံး ရထားစီးခြင်း၊"),
             ("ဂျပန်ရိုးရာ စားသောက်ဆိုင်များတွင် စားသောက်ခြင်း、"),
