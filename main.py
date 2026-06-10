@@ -273,38 +273,16 @@ else:
                     full_text += chunk.text
                     placeholder.success(full_text)
 
-    # 滞在日数選択用のマルチランゲージ設定
-    label_mapping = {
-        "English": "Select Duration",
-        "Myanmar": "ခရီးစဉ်ရက်အရေအတွက် ရွေးချယ်ပါ",
-        "Japanese": "滞在日数を選択してください"
-    }
+    if "show_days_picker" not in str_web.session_state:
+        str_web.session_state.show_days_picker = False
 
-    options_mapping = {
-        "English": ["1 Day", "2 Days", "3 Days", "4 Days", "5 Days", "6 Days", "7 Days"],
-        "Myanmar": ["1 ရက်စာ", "2 ရက်စာ", "3 ရက်စာ", "4 ရက်စာ", "5 ရက်စာ", "6 ရက်စာ", "7 ရက်စာ"],
-        "Japanese": ["1日間", "2日間", "3日間", "4日間", "5日間", "6日間", "7日間"]
+    # 各言語に対応したボタンテキストの設定
+    init_btn_mapping = {
+        "English": f"📅 {tx['itinerary_btn']}",
+        "Myanmar": f"📅 {tx['itinerary_btn']}",
+        "Japanese": f"📅 {tx['itinerary_btn']}"
     }
-
-    # セレクトボックスと生成ボタンのレイアウト配置
-    col_days, col_action = str_web.columns([1, 1])
-    
-    with col_days:
-        selected_days = str_web.selectbox(
-            label=label_mapping.get(current_lang, label_mapping["English"]),
-            options=options_mapping.get(current_lang, options_mapping["English"]),
-            index=2,  # デフォルトは3日間
-            key="travel_days_selector",
-            label_visibility="collapsed"
-        )
-
-    # 動的なボタンラベルの生成
-    btn_label_mapping = {
-        "English": f"Generate {selected_days} Plan",
-        "Myanmar": f"{selected_days} ခရီးစဉ်အကြံပြုချက်ကို ဖန်တီးပါ",
-        "Japanese": f"{selected_days}{tx['itinerary_btn']}を生成"
-    }
-    btn_text = btn_label_mapping.get(current_lang, btn_label_mapping["English"])
+    init_btn_text = init_btn_mapping.get(current_lang, init_btn_mapping["English"])
 
     row2_col1, row2_col2 = str_web.columns(2)
     with row2_col1:
@@ -321,9 +299,47 @@ else:
                     placeholder.warning(full_text)
 
     with row2_col2:
-        if str_web.button(btn_text, use_container_width=True):
+        # メインのプランボタンを押したら、日数の選択肢を表示するフラグをTrueにする
+        if str_web.button(init_btn_text, use_container_width=True):
+            str_web.session_state.show_days_picker = True
+
+    # ボタンが押されたら、選択ドロップダウンと生成のUIを展開する
+    if str_web.session_state.show_days_picker:
+        str_web.markdown("---")
+        
+        # 各言語に対応したセレクトボックスのラベルマッピング
+        label_mapping = {
+            "English": "Choose days and confirm:",
+            "Myanmar": "ရက်အရေအတွက်ရွေးချယ်ပြီး အတည်ပြုပါ -",
+            "Japanese": "滞在日数を選択して確定してください："
+        }
+
+        options_mapping = {
+            "English": ["1 Day", "2 Days", "3 Days", "4 Days", "5 Days", "6 Days", "7 Days"],
+            "Myanmar": ["1 ရက်စာ", "2 ရက်စာ", "3 ရက်စာ", "4 ရက်စာ", "5 ရက်စာ", "6 ရက်စာ", "7 ရက်စာ"],
+            "Japanese": ["1日間", "2日間", "3日間", "4日間", "5日間", "6日間", "7日間"]
+        }
+
+        # ရက်ရွေးရမည့် Dropdown ကို UI အောက်တွင် ပေါ်လာစေခြင်း
+        selected_days = str_web.selectbox(
+            label=label_mapping.get(current_lang, label_mapping["English"]),
+            options=options_mapping.get(current_lang, options_mapping["English"]),
+            index=2,  # デフォルトは3日間
+            key="travel_days_selector"
+        )
+
+        # 確定ボタンのテキスト設定
+        confirm_btn_mapping = {
+            "English": "✨ Confirm & Generate Itinerary",
+            "Myanmar": "✨ အတည်ပြုပြီး ခရီးစဉ်ထုတ်ယူမည်",
+            "Japanese": "✨ この日数でプランを生成する"
+        }
+        confirm_btn_text = confirm_btn_mapping.get(current_lang, confirm_btn_mapping["English"])
+
+        # 日数を選択した後に、最終生成を行うボタン
+        if str_web.button(confirm_btn_text, use_container_width=True, type="primary"):
             with str_web.spinner("Connecting AI..."):
-                # 選択肢の文字列から数字のみを抽出 (例: "3日間" -> "3")
+                # 文字列から数字のみを抽出 (例: "3日間" -> "3")
                 days_number = "".join(filter(str.isdigit, selected_days))
                 placeholder = str_web.empty()
                 full_text = ""
@@ -334,7 +350,9 @@ else:
                 ):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
-
+            
+            # 生成が終わったら選択UIを閉じる設定（お好みで残す場合は以下を削除）
+            str_web.session_state.show_days_picker = False
     # Bookmark Action Bar
     if str_web.button(f"📌 Save {city} to Bookmarks", use_container_width=True):
         bookmark_item = f"{city} ({prefecture})"
