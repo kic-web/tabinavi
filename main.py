@@ -8,31 +8,34 @@ from PIL import Image
 # 1. Page Config
 str_web.set_page_config(page_title="TabiNavi Concierge", layout="wide", initial_sidebar_state="expanded")
 
-# 2. Advanced Custom CSS (ကတ်ပြားပုံစံ ခလုတ်များအတွက် အထူးပြင်ဆင်ချက်)
+# 2. Advanced Custom CSS (UI/UX ပိုမိုကောင်းမွန်အောင် ပြင်ဆင်ထားသော စတိုင်များ)
 str_web.markdown("""
 <style>
     /* Premium Header Card */
     .custom-header {
         background: linear-gradient(135deg, #0F3A40 0%, #1D5B66 100%) !important;
-        padding: 20px !important;
+        padding: 24px 20px !important;
         border-radius: 12px !important;
         text-align: center !important;
-        margin-bottom: 20px !important;
+        margin-bottom: 25px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     }
+    /* Typography Hierarchy ကို ပိုမိုထင်ရှားစေခြင်း */
     .custom-header h1 {
-        font-size: 26px !important;
-        font-weight: 700 !important;
+        font-size: 32px !important; 
+        font-weight: 800 !important;
         color: #FFFFFF !important;
         margin: 0 !important;
+        letter-spacing: 0.5px !important;
     }
     .subtitle-text {
-        color: #E2E8F0 !important;
-        font-size: 13px !important;
-        margin-top: 4px !important;
+        color: #CBD5E1 !important;
+        font-size: 14px !important;
+        margin-top: 8px !important;
+        font-weight: 400 !important;
     }
 
-    /* Streamlit Button ကို Premium Card Style ပြောင်းလဲခြင်း */
+    /* Streamlit Button ကို Premium Card Style ပြောင်းလဲခြင်း + Hover Effect အသစ် */
     div.stButton > button {
         background-color: #1A202C !important;
         color: #FFFFFF !important;
@@ -42,14 +45,26 @@ str_web.markdown("""
         min-height: 110px !important;
         font-size: 14px !important;
         font-weight: 600 !important;
-        white-space: pre-line !important;  /* \n စာကြောင်းဆင်းမှုကို အလုပ်လုပ်စေရန် */
-        transition: all 0.3s ease !important;
+        white-space: pre-line !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
     }
+    /* Hover လုပ်လိုက်လျှင် သိသိသာသာ ပြောင်းလဲသွားမည့် အရောင်နှင့် ပုံစံ */
     div.stButton > button:hover {
-        border-color: #1D5B66 !important;
+        border-color: #4FD1C5 !important;
         background-color: #2D3748 !important;
-        transform: translateY(-3px) !important;
+        color: #4FD1C5 !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 6px 12px rgba(79, 209, 197, 0.2) !important;
+    }
+    div.stButton > button:active {
+        transform: translateY(-1px) !important;
+    }
+
+    /* Map Corner Area ကို ကတ်ပြားများနှင့် တစ်သားတည်းဖြစ်အောင် ညှိခြင်း */
+    .map-wrapper iframe {
+        border-radius: 12px !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
     }
 
     /* Utility Row Widgets Layout */
@@ -64,21 +79,20 @@ str_web.markdown("""
         background-color: #1A202C !important;
         border: 1px solid #2D3748 !important;
         border-radius: 10px !important;
-        padding: 10px !important;
+        padding: 12px !important;
         text-align: center !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
     }
     .mini-card-title {
         font-size: 11px !important;
         color: #A0AEC0 !important;
         text-transform: uppercase !important;
+        margin-bottom: 4px;
     }
     .mini-card-value {
-        font-size: 15px !important;
+        font-size: 16px !important;
         font-weight: 700 !important;
         color: #FFFFFF !important;
-    }
-    .map-wrapper iframe {
-        border-radius: 12px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -198,12 +212,9 @@ if prefecture and city:
     loc_context = f"{city}, {prefecture}"
     str_web.markdown(f"### {tx['sec_quick']}")
     
-    # ✅ (အရေးကြီးဆုံးအချက်) 2x2 Responsive Image Card Layout ကို Button စစ်စစ်များအဖြစ် ပြောင်းလဲခြင်း
-    # Column ၄ ခုခွဲပြီး အီမိုဂျီနှင့် စာသားကို တစ်ပါတည်းပေါင်းစပ်ကာ ခလုတ်တစ်ခုတည်းအဖြစ် တည်ဆောက်ထားသည်။
     grid_col1, grid_col2, grid_col3, grid_col4 = str_web.columns(4)
     
     with grid_col1:
-        # \n\n ခံပြီး စာကြောင်းဆင်းထားခြင်းဖြင့် အပေါ်မှာအီမိုဂျီ၊ အောက်မှာစာသား ပုံစံကွက်တိထွက်လာပါမည်
         if str_web.button(f"🚄\n\n{tx['train_btn']}", use_container_width=True, key="btn_train_main"):
             with str_web.spinner("Loading..."):
                 placeholder = str_web.empty()
@@ -259,10 +270,10 @@ if prefecture and city:
             str_web.session_state.bookmarks.append(bookmark_item)
             str_web.toast(f"Saved {city}!")
 
-    # Google Map Embed
-    search_query = city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
+    # 🛠️ Google Map Embed Link ပြင်ဆင်ချက် (URL အမှားနှင့် Query စနစ်ကို ပိုမှန်အောင် ညှိထားသည်)
+    search_query = city.replace("区", "").replace("市", "") + f", {prefecture}"
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
-    str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="240" style="border:0;"></iframe></div>', unsafe_allow_html=True)
+    str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="280" style="border:0;"></iframe></div>', unsafe_allow_html=True)
 
     # --- Etiquette Panel ---
     str_web.markdown("---")
