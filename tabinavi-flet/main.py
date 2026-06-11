@@ -1,278 +1,350 @@
 import os
 import json
-import flet as ft
+import streamlit as str_web
 from google import genai
 from google.genai import types
+from PIL import Image
 
-def main(page: ft.Page):
-    # 🌟 1. Page Configuration (Premium PC App)
-    page.title = "TabiNavi Concierge"
-    page.theme_mode = ft.ThemeMode.DARK
-    page.background_color = "#0E1117"  # Streamlit မူရင်း Dark Theme နောက်ခံ
-    page.padding = 0  
-    page.window_width = 1240
-    page.window_height = 900
+# 1. Page Config
+str_web.set_page_config(page_title="TabiNavi Concierge", layout="wide", initial_sidebar_state="expanded")
 
-    # 🔑 Gemini API Key
-    API_KEY = "AIzaSy..." 
-    client = genai.Client(api_key=API_KEY)
+# 2. Fully Responsive & Full-Width Card Grid CSS (Laptop တွင် ကြီးကြီးမားမား အပြည့်ပေါ်စေရန်)
+str_web.markdown("""
+<style>
+    /* Premium Header Card */
+    .custom-header {
+        background: linear-gradient(135deg, #0F3A40 0%, #1D5B66 100%) !important;
+        padding: 22px !important;
+        border-radius: 12px !important;
+        text-align: center !important;
+        margin-bottom: 25px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    }
+    .custom-header h1 {
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
+        margin: 0 !important;
+    }
+    .subtitle-text {
+        color: #E2E8F0 !important;
+        font-size: 14px !important;
+        margin-top: 5px !important;
+    }
 
-    # 📂 Japan Data Load လုပ်ခြင်း
-    json_path = os.path.join(os.path.dirname(__file__), "..", "japan_data.json")
-    prefecture_city_map = {}
-    if os.path.exists(json_path):
-        with open(json_path, "r", encoding="utf-8") as f:
-            prefecture_city_map = json.load(f)
-
-    # --- 🛠️ 2. Core Logic (လုပ်ဆောင်ချက်များ) ---
-    def on_pref_change(e):
-        selected_pref = pref_dropdown.value
-        if selected_pref in prefecture_city_map:
-            # ✅ Flet ဗားရှင်းသစ်နဲ့ ကွက်တိကိုက်ညီအောင် ပြင်ဆင်ထားသော Option List
-            city_dropdown.options = [ft.dropdown.Option(text=str(c), key=str(c)) for c in prefecture_city_map[selected_pref]]
-            city_dropdown.disabled = False
-        else:
-            city_dropdown.disabled = True
-            city_dropdown.options = []
-        city_dropdown.value = None
-        page.update()
-
-    def handle_service_call(prompt_text):
-        output_box.value = "⏳ AI က ရှာဖွေပေးနေပါသည်..."
-        page.update()
-        try:
-            config = types.GenerateContentConfig(
-                temperature=0.7,
-                system_instruction=f"Provide helpful Japan travel insights in Myanmar language. User preferred language is {lang_dropdown.value}."
-            )
-            response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt_text, config=config)
-            output_box.value = response.text
-        except Exception as ex:
-            output_box.value = f"⚠️ Connection Error: {str(ex)}"
-        page.update()
-
-    # Tools & Language Actions
-    def on_lang_change(e):
-        output_box.value = f"🌐 Language switched to: {lang_dropdown.value}"
-        page.update()
-
-    def click_camera_tool(e):
-        output_box.value = f"📷 [Smart Camera Translator Activated] Ready to scan Japanese text into {lang_dropdown.value}..."
-        page.update()
-
-    def click_speech_tool(e):
-        output_box.value = f"🗣️ [Text/Speech Translator Activated] Listening for speech inputs..."
-        page.update()
-
-    # Custom Trip Planner Logic
-    def generate_custom_plan(e):
-        if not city_dropdown.value:
-            output_box.value = "💡 Please select a Destination (Prefecture & City) first!"
-            page.update()
-            return
-        if not days_dropdown.value:
-            output_box.value = "📅 Please select the number of days for your trip!"
-            page.update()
-            return
-        
-        prompt = f"Create a detailed travel itinerary for {days_dropdown.value} in {city_dropdown.value}. Suggest top places and scheduling."
-        handle_service_call(prompt)
-
-    # Login Logic
-    def handle_login(e):
-        if username_input.value and password_input.value:
-            login_status.value = f"✅ Welcome back, {username_input.value}! (Premium Active)"
-            login_status.color = ft.Colors.GREEN_400
-        else:
-            login_status.value = "⚠️ Please enter both Username and Password."
-            login_status.color = ft.Colors.RED_400
-        page.update()
-
-    def check_weather(e):
-        if city_dropdown.value:
-            weather_text.value = f"☀️ 15°C\nCloudy in {city_dropdown.value}"
-        else:
-            weather_text.value = "💡 Please select a city first."
-        page.update()
-
-    def calculate_currency(e):
-        try:
-            amount = float(currency_input.value) if currency_input.value else 1000
-            usd_rate = amount / 154  
-            currency_result.value = f"💵 Result: {amount} JPY = ${usd_rate:.2f} USD"
-        except:
-            currency_result.value = "⚠️ Invalid Amount"
-        page.update()
-
-    # --- 🛠️ 3. LEFT SIDEBAR (Control Panel & Tools) ---
-    # ✅ Dropdown ရဲ့ စံနှုန်းအမှန်အတိုင်း သေချာပြန်ပြင်ထားပါတယ်
-    lang_dropdown = ft.Dropdown(
-        value="English",
-        options=[
-            ft.dropdown.Option(text="English", key="English"), 
-            ft.dropdown.Option(text="Myanmar", key="Myanmar"),
-            ft.dropdown.Option(text="Japanese (JP)", key="Japanese (JP)")
-        ],
-        border_color="#3A4454",
-        bgcolor="#1A202C",
-        on_change=on_lang_change  
-    )
-
-    sidebar_content = ft.Container(
-        content=ft.Column([
-            ft.Text("⚙️ Control Panel", size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-            ft.Divider(color="#2D3748"),
-            
-            ft.Text("🌐 Language", size=14, color="#B0C4DE"),
-            lang_dropdown,
-            
-            ft.Divider(color="#2D3748"),
-            ft.Text("🛠️ Translation Tools", size=14, color="#B0C4DE"),
-            ft.ElevatedButton("📷 Smart Camera Translator", width=260, on_click=click_camera_tool, style=ft.ButtonStyle(bgcolor="#1F2937")),
-            ft.ElevatedButton("🗣️ Text/Speech Translator", width=260, on_click=click_speech_tool, style=ft.ButtonStyle(bgcolor="#1F2937")),
-        ], spacing=15),
-        bgcolor="#1F2937",
-        padding=20,
-        width=300,
-        height=900
-    )
-
-    # --- 🛠️ 4. LOGIN PANEL ---
-    username_input = ft.TextField(label="Username", width=160, height=40, text_size=13, border_color="#3A4454")
-    password_input = ft.TextField(label="Password", password=True, can_reveal_password=True, width=160, height=40, text_size=13, border_color="#3A4454")
-    login_status = ft.Text("Please login to sync travel data.", size=12, color="#718096")
+    /* 📌 Streamlit Column အတွင်းရှိ Button တိုင်းကို နေရာအပြည့်ယူစေပြီး Card ပုံစံပြောင်းလဲခြင်း */
+    div.stButton > button {
+        background-color: #1A202C !important;
+        color: #FFFFFF !important;
+        border: 1px solid #2D3748 !important;
+        border-radius: 14px !important;
+        padding: 24px 15px !important;
+        width: 100% !important;        /* Screen အလိုက် အပြည့်ဆွဲဆန့်ရန် */
+        min-height: 120px !important;       /* ကတ်ပြားအမြင့်ကို ပိုမိုကြီးမားစေရန် */
+        font-size: 15px !important;        /* စာသားအရွယ်အစားကို ပိုကြီးအောင်လုပ်ထားသည် */
+        font-weight: 600 !important;
+        white-space: pre-line !important;  /* \n ကြောင့် အီမိုဂျီနှင့် စာသား အထက်အောက် ကွက်တိကျရန် */
+        transition: all 0.25s ease-in-out !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25) !important;
+    }
     
-    login_bar = ft.Container(
-        content=ft.Row([
-            ft.Text("🔐 Member Login:", size=14, weight=ft.FontWeight.BOLD),
-            username_input,
-            password_input,
-            ft.ElevatedButton("Sign In", on_click=handle_login, style=ft.ButtonStyle(bgcolor="#2D3748")),
-            login_status
-        ], spacing=15, alignment=ft.MainAxisAlignment.START),
-        padding=10,
-        bgcolor="#141B26",
-        border_radius=8,
-        width=850
-    )
+    /* Hover Effect */
+    div.stButton > button:hover {
+        border-color: #1D5B66 !important;
+        background-color: #2D3748 !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 6px 15px rgba(29, 91, 102, 0.4) !important;
+    }
 
-    # --- 🛠️ 5. RIGHT MAIN CONTENT PANEL ---
-    header_card = ft.Container(
-        content=ft.Column([
-            ft.Text("TabiNavi Concierge", size=28, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-            ft.Text("Your Next-Gen AI Travel Companion", size=14, color="#B0C4DE")
-        ], alignment=ft.MainAxisAlignment.CENTER),
-        gradient=ft.LinearGradient(
-            begin=ft.Alignment(-1, -1), end=ft.Alignment(1, 1),
-            colors=["#1D5B66", "#0F3A40"]
-        ),
-        padding=25, border_radius=12, width=850
-    )
+    /* Bookmark Button အတွက် သီးသန့် အလှဆင်ခြင်း */
+    div[data-testid="stSidebar"] div.stButton > button, 
+    .stMainBlockBtn > button {
+        /* Utility ခလုတ်ပုံမှန်များအတွက် */
+    }
 
-    # Destination Dropdowns
-    pref_dropdown = ft.Dropdown(
-        label="Select Prefecture", 
-        options=[ft.dropdown.Option(text=str(p), key=str(p)) for p in prefecture_city_map.keys()], 
-        on_change=on_pref_change, 
-        border_color="#3A4454", 
-        expand=True
-    )
-    city_dropdown = ft.Dropdown(label="Select City / Area", disabled=True, border_color="#3A4454", expand=True)
-    destination_row = ft.Row([pref_dropdown, city_dropdown], spacing=15, width=850)
+    /* Utility Row Widgets Layout */
+    .utility-flex {
+        display: flex !important;
+        gap: 12px !important;
+        margin-top: 15px !important;
+        margin-bottom: 15px !important;
+    }
+    .mini-card {
+        flex: 1 !important;
+        background-color: #1A202C !important;
+        border: 1px solid #2D3748 !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        text-align: center !important;
+    }
+    .mini-card-title {
+        font-size: 11px !important;
+        color: #A0AEC0 !important;
+        text-transform: uppercase !important;
+    }
+    .mini-card-value {
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
+    }
+    .map-wrapper iframe {
+        border-radius: 12px !important;
+    }
+</style>
+""", unsafe_allowed_html=True)
 
-    # Trip Planner Section (ရက်အလိုက် ရွေးချယ်နိုင်သော စနစ်သစ်)
-    days_dropdown = ft.Dropdown(
-        label="Select Number of Days",
-        options=[ft.dropdown.Option(text=f"{i} Days Plan", key=f"{i} Days") for i in range(1, 11)], 
-        border_color="#3A4454",
-        expand=True
-    )
-    make_plan_btn = ft.ElevatedButton("📅 Generate Custom Plan", on_click=generate_custom_plan, style=ft.ButtonStyle(bgcolor="#1D5B66", color=ft.Colors.WHITE), height=50)
-    plan_section_row = ft.Row([days_dropdown, make_plan_btn], spacing=15, width=850)
+# Initialize Session States
+if "bookmarks" not in str_web.session_state:
+    str_web.session_state.bookmarks = []
+if "expenses" not in str_web.session_state:
+    str_web.session_state.expenses = []
+if "show_picker" not in str_web.session_state:
+    str_web.session_state.show_picker = False
 
-    # Core Travel Service Buttons
-    btn_route = ft.ElevatedButton("🚄 Routes Guide", on_click=lambda e: handle_service_call(f"Provide train routes to {city_dropdown.value}"), style=ft.ButtonStyle(bgcolor="#1F2937", color=ft.Colors.WHITE), expand=True, height=50)
-    btn_food = ft.ElevatedButton("🍱 Food & Dining", on_click=lambda e: handle_service_call(f"List famous food in {city_dropdown.value}"), style=ft.ButtonStyle(bgcolor="#1F2937", color=ft.Colors.WHITE), expand=True, height=50)
-    btn_hotel = ft.ElevatedButton("🏨 Hotels", on_click=lambda e: handle_service_call(f"Best hotel areas in {city_dropdown.value}"), style=ft.ButtonStyle(bgcolor="#1F2937", color=ft.Colors.WHITE), expand=True, height=50)
-    services_row = ft.Row([btn_route, btn_food, btn_hotel], spacing=15, width=850)
+# Translations Dictionary (6 Days Plan စာသားကို Plan သီးသန့်အဖြစ် ပြင်ဆင်ပြီး)
+ui_translations = {
+    "English": {
+        "title": "TabiNavi Concierge", "sub": "Your Next-Gen AI Travel Companion",
+        "pref_label": "Select Prefecture", "pref_holder": "Choose a prefecture...",
+        "city_label": "Select City / Area", "city_holder": "Choose a city...",
+        "sec_quick": "Quick Travel Services",
+        "train_btn": "Routes Guide", "food_btn": "Food & Dining", "hotel_btn": "Hotels", "itinerary_btn": "Plan Guide",
+        "cam_box": "Smart Camera Translator", "cam_upload": "Upload image...",
+        "text_box": "Text/Speech Translator", "text_input": "Enter text...",
+        "sec_utilities": "Travel Utilities", "safety_box": "Disaster Safety Guide", "safety_btn": "Get Emergency Guide",
+        "expense_box": "Travel Expense Tracker", "bookmark_box": "Saved Locations",
+        "sec_trip": "Trip Activities & Local Etiquette", "act_label": "Select Activity Type", "act_holder": "Choose an activity...",
+        "guide_btn": "Generate Guide", "weather_box": "Weather & Clothing Guide", "weather_btn": "Check Weather",
+        "calc_box": "Currency Converter", "calc_btn": "Calculate", "sos_btn": "Show Emergency Contacts",
+        "sidebar_title": "Control Panel",
+    },
+    "Myanmar": {
+        "title": "TabiNavi Concierge", "sub": "အဆင့်မြင့် AI စနစ်သုံး အိတ်ဆောင်ခရီးသွားလမ်းညွှန်",
+        "pref_label": "ပြည်နယ်/ခရိုင် ကို ရွေးချယ်ပါ", "pref_holder": "ခရိုင်တစ်ခု ရွေးချယ်ပေးပါ...",
+        "city_label": "မြို/ဒေသ ကို ရွေးချယ်ပါ", "city_holder": "မြို့ကို ရွေးချယ်ပေးပါ...",
+        "sec_quick": "အမြန်အသုံးပြုနိုင်မည့် ဝန်ဆောင်မှုများ",
+        "train_btn": "ရထားလမ်းကြောင်း", "food_btn": "အစားအသောက်ဆိုင်", "hotel_btn": "ဟိုတယ်တည်းခိုခန်း", "itinerary_btn": "ခရီးစဉ်အကြံပြုချက်",
+        "cam_box": "Smart ကင်မရာ ဘာသာပြန်စနစ်", "cam_upload": "ပုံရိပ် တင်ပေးပါ...",
+        "text_box": "အချိန်နဲ့တပြေးညီ ဘာသာပြန်", "text_input": "စာသားရိုက်ပါ...",
+        "sec_utilities": "ခရီးသွား အသုံးဆောင်များနှင့် စာရင်းများ", "safety_box": "သဘာဝဘေးအန္တရာယ် ဘေးကင်းလုံခြုံရေး", "safety_btn": "အရေးပေါ် လမ်းညွှန်ချက်ရယူမည်",
+        "expense_box": "ခရီးသွားစရိတ် မှတ်တမ်း", "bookmark_box": "မှတ်သားထားသော နေရာများ",
+        "sec_trip": "ပြုလုပ်မည့် အတွေ့အကြုံများနှင့် စည်းကမ်းများ", "act_label": "လုပ်ဆောင်မည့် အတွေ့အကြုံ အမျိုးအစား", "act_holder": "အတွေ့အကြုံ ရွေးချယ်ရန်...",
+        "guide_btn": "လမ်းညွှန်ချက် ထုတ်လုပ်မည်", "weather_box": "ရာသီဥတုနှင့် ဝတ်စားဆင်ယင်မှု လမ်းညွှန်", "weather_btn": "ရာသီဥတု စစ်မည်",
+        "calc_box": "ငွေလဲနှုန်း တွက်ချက်စနစ်", "calc_btn": "ငွေလဲနှုန်း တွက်မည်", "sos_btn": "အရေးပေါ် အချက်အလက်ပြပါ",
+        "sidebar_title": "ထိန်းချုပ်ရေးခန်း",
+    },
+    "Japanese": {
+        "title": "TabiNavi Concierge", "sub": "次世代AI旅行コンパニオン",
+        "pref_label": "都道府県を選択", "pref_holder": "都道府県 を選択してください...",
+        "city_label": "市区町村を選択", "city_holder": "市区町村 を選択してください...",
+        "sec_quick": "クイック旅行サービス",
+        "train_btn": "電車の乗換案内", "food_btn": "グルメ・周辺の飲食店", "hotel_btn": "おすすめの宿泊エリア", "itinerary_btn": "おすすめプラン",
+        "cam_box": "スマートカメラ翻訳", "cam_upload": "画像をアップロード...",
+        "text_box": "リアルタイム翻訳", "text_input": "テキストを入力...",
+        "sec_utilities": "旅行ユーティリティ", "safety_box": "災害・防災ガイド", "safety_btn": "避難案内を取得",
+        "expense_box": "旅費の家計簿", "bookmark_box": "お気に入り保存場所",
+        "sec_trip": "アクティビティ & マナーガイド", "act_label": "アクティビティの種類を選択", "act_holder": "アクティビティを選択...",
+        "guide_btn": "ガイドを生成", "weather_box": "天気・服装ガイド", "weather_btn": "天気をチェック",
+        "calc_box": "通貨換算ツール", "calc_btn": "換算する", "sos_btn": "緊急情報を表示",
+        "sidebar_title": "コントロールパネル",
+    },
+}
+
+# --- SIDEBAR TOOLS ---
+with str_web.sidebar:
+    str_web.markdown(f"### ⚙️ {ui_translations['English']['sidebar_title']}")
+    language_options = {"🇺🇸 English": "English", "🇲🇲 Myanmar (မြန်မာ)": "Myanmar", "🇯🇵 Japanese": "Japanese"}
+    selected_lang_label = str_web.selectbox("🌐 Language", list(language_options.keys()), index=0)
+    current_lang = language_options[selected_lang_label]
+    tx = ui_translations[current_lang]
+
+    str_web.markdown("---")
+    with str_web.expander(tx["cam_box"]):
+        uploaded_file = str_web.file_uploader(tx["cam_upload"], type=["jpg", "jpeg", "png"])
+        if uploaded_file and str_web.button("🔍 Translate Image", use_container_width=True):
+            client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
+            placeholder = str_web.empty()
+            full_text = ""
+            for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=[f"Translate into {current_lang}:", Image.open(uploaded_file)]):
+                full_text += chunk.text
+                placeholder.markdown(full_text)
+
+    with str_web.expander(tx["text_box"]):
+        input_text = str_web.text_input(tx["text_input"], key="side_txt_in")
+        if str_web.button("🌐 Translate Text", use_container_width=True) and input_text:
+            client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
+            placeholder = str_web.empty()
+            full_text = ""
+            for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Translate into Japanese with Romaji: '{input_text}'"):
+                full_text += chunk.text
+                placeholder.markdown(full_text)
+
+# --- CORE ENGINE SETUP ---
+client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
+prefecture_city_map = {}
+if os.path.exists("japan_data.json"):
+    with open("japan_data.json", "r", encoding="utf-8") as f:
+        prefecture_city_map = json.load(f)
+
+# Top Premium Title Banner
+str_web.markdown(f'''
+<div class="custom-header">
+    <h1>{tx["title"]}</h1>
+    <p class="subtitle-text">{tx["sub"]}</p>
+</div>
+''', unsafe_allowed_html=True)
+
+# Select Filter Area
+col_pref, col_city = str_web.columns(2)
+with col_pref:
+    prefecture = str_web.selectbox(tx["pref_label"], list(prefecture_city_map.keys()) if prefecture_city_map else [], index=None, placeholder=tx["pref_holder"])
+with col_city:
+    city = str_web.selectbox(tx["city_label"], prefecture_city_map.get(prefecture, []) if prefecture else [], index=None, placeholder=tx["city_holder"], disabled=not prefecture)
+
+common_ai_config = types.GenerateContentConfig(temperature=0.7, system_instruction=f"Respond using concise, short bullet points. Output language: {current_lang}.")
+
+# --- USER VIEW INTERACTION ---
+if prefecture and city:
+    loc_context = f"{city}, {prefecture}"
+    str_web.markdown(f"### {tx['sec_quick']}")
     
-    bookmark_btn = ft.ElevatedButton("⭐ Save City to Bookmarks", width=850, style=ft.ButtonStyle(bgcolor="#2D3748"))
-
-    # Map Card
-    map_container = ft.Container(
-        content=ft.Row([
-            ft.Text("🗺️ [Map View Integrated Placeholder]", color="#718096", size=14, expand=True),
-            ft.ElevatedButton("Open in Maps ↗", url="https://maps.google.com")
-        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-        bgcolor="#1F2937", padding=15, border_radius=10, width=850
-    )
-
-    # Weather & Currency Layout
-    weather_text = ft.Text("⛅ 15°C\nWeather Info", size=12, weight=ft.FontWeight.BOLD)
-    currency_result = ft.Text("🇺🇸 1$ = 154¥ 🇯🇵", size=12, weight=ft.FontWeight.BOLD)
-    weather_card = ft.Container(content=weather_text, bgcolor="#1F2937", padding=15, border_radius=10, expand=True)
-    currency_card = ft.Container(content=currency_result, bgcolor="#1F2937", padding=15, border_radius=10, expand=True)
+    # 💻 Laptop ကော Mobile တွင်ပါ Card ကြီးကြီးမားမား အချိုးကျ ကွက်တိပေါ်စေရန် 4 Columns စနစ်ဖြင့်တည်ဆောက်ထားသည်
+    grid_col1, grid_col2, grid_col3, grid_col4 = str_web.columns(4)
     
-    currency_input = ft.TextField(label="Amount in JPY", value="1000", border_color="#3A4454", height=45, expand=True)
-    calc_btn = ft.ElevatedButton("Calculate", on_click=calculate_currency, height=45)
+    with grid_col1:
+        if str_web.button(f"🚄\n\n{tx['train_btn']}", use_container_width=True, key="btn_train_main"):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide train route guide for {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.info(full_text)
 
-    # Utilities Panel
-    utilities_content = ft.Container(
-        content=ft.Column([
-            ft.Text("🚨 [Disaster Safety Guide]", weight=ft.FontWeight.BOLD, size=14),
-            ft.Text("• Earthquake: Drop, Cover, Hold on.\n• Tsunami: Move to higher ground immediately.", size=13),
-            ft.Divider(color="#2D3748"),
-            ft.Text("📊 Travel Expense Tracker: Feature Ready", size=13, color="#B0C4DE"),
-            ft.Text("⭐ Saved Locals: Saved Locations List", size=13, color="#B0C4DE"),
-        ]),
-        bgcolor="#141B26", padding=15, border_radius=10, width=850
-    )
+    with grid_col2:
+        if str_web.button(f"🍱\n\n{tx['food_btn']}", use_container_width=True, key="btn_food_main"):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"List 3 famous food spots in {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.success(full_text)
 
-    # Output Box View
-    output_box = ft.Text("ခရီးသွားလမ်းညွှန်ချက်များနှင့် အချက်အလက်များကို ဤနေရာတွင် ပြသပေးမည်။", size=13)
-    output_container = ft.Container(
-        content=ft.Column([output_box], scroll=ft.ScrollMode.AUTO),
-        bgcolor="#1A202C", padding=15, border_radius=10,
-        border=ft.Border.all(1, "#2D3748"), width=850, height=200 
-    )
+    with grid_col3:
+        if str_web.button(f"🏨\n\n{tx['hotel_btn']}", use_container_width=True, key="btn_hotel_main"):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Recommend best hotel stay areas in {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.warning(full_text)
 
-    # Right Side Content Assembly
-    main_content_area = ft.Container(
-        content=ft.Column([
-            login_bar, 
-            header_card,
-            ft.Text("Select Destination", size=16, weight=ft.FontWeight.BOLD),
-            destination_row,
-            ft.Divider(height=5, color=ft.Colors.TRANSPARENT),
-            ft.Text("Trip Planner (Select Days)", size=16, weight=ft.FontWeight.BOLD),
-            plan_section_row, 
-            ft.Divider(height=5, color=ft.Colors.TRANSPARENT),
-            ft.Text("Quick Travel Services", size=16, weight=ft.FontWeight.BOLD),
-            services_row,
-            bookmark_btn,
-            ft.Divider(height=10),
-            map_container,
-            ft.Divider(height=10),
-            ft.Text("Trip Activities & Local Etiquette", size=16, weight=ft.FontWeight.BOLD),
-            ft.Row([weather_card, currency_card], spacing=15, width=850),
-            ft.ElevatedButton("Check Weather", on_click=check_weather, width=850),
-            ft.Row([currency_input, calc_btn], spacing=15, width=850),
-            ft.Divider(height=10),
-            ft.Text("Travel Utilities", size=16, weight=ft.FontWeight.BOLD),
-            utilities_content,
-            output_container
-        ], spacing=15, scroll=ft.ScrollMode.AUTO),
-        padding=25,
-        expand=True
-    )
+    with grid_col4:
+        if str_web.button(f"🌸\n\n{tx['itinerary_btn']}", use_container_width=True, key="btn_plan_main"):
+            str_web.session_state.show_picker = True
 
-    # --- 🌟 6. MAIN LAYOUT SPLIT ---
-    page.add(
-        ft.Row([
-            sidebar_content,
-            main_content_area
-        ], expand=True, spacing=0)
-    )
+    # 📅 Plan ခလုတ်ကိုနှိပ်မှ ရက်အရေအတွက်ရွေးချယ်ရန် ပေါ်လာမည့်စနစ်
+    if str_web.session_state.show_picker:
+        str_web.markdown("#### 📅 Select Trip Duration")
+        options_map = {
+            "English": [f"{i} Days Plan" for i in range(1, 11)],
+            "Myanmar": [f"{i} ရက်စာ အစီအစဉ်" for i in range(1, 11)],
+            "Japanese": [f"{i}日間プラン" for i in range(1, 11)]
+        }
+        selected_days = str_web.selectbox("Duration", options_map.get(current_lang, options_map["English"]))
+        if str_web.button("🚀 Confirm & Generate Itinerary", use_container_width=True):
+            with str_web.spinner("Loading..."):
+                days_number = "".join(filter(str.isdigit, selected_days))
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Create a detailed {days_number}-day travel itinerary for {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.markdown(full_text)
+            str_web.session_state.show_picker = False
 
-if __name__ == "__main__":
-    ft.run(main)
+    str_web.markdown("<br>", unsafe_allowed_html=True)
+    if str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True):
+        bookmark_item = f"{city} ({prefecture})"
+        if bookmark_item not in str_web.session_state.bookmarks:
+            str_web.session_state.bookmarks.append(bookmark_item)
+            str_web.toast(f"Saved {city}!")
+
+    # Google Map Embed
+    search_query = city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
+    map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
+    str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="320" style="border:0;"></iframe></div>', unsafe_allow_html=True)
+
+    # --- Etiquette Panel ---
+    str_web.markdown("---")
+    str_web.markdown(f"### {tx['sec_trip']}")
+    activity_mapping = {
+        "English": ["Shopping at supermarkets & cooking", "Sento/Onsen etiquette & bathing", "Riding local buses and fares", "Visiting shrines and temples"],
+        "Myanmar": ["ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်း", "အများသုံးရေချိုးခန်း (Onsen) စည်းကမ်းများ", "ဒေသန္တရဘတ်စ်ကားများ စီးနင်းခြင်း", "ဘုရားကျောင်းများနှင့် နတ်ကွန်းများသို့ လည်ပတ်ခြင်း"],
+        "Japanese": ["スーパーでの買い物と自炊", "銭湯・温泉の入浴マナー", "路線バスの利用方法と運賃", "神社・仏閣の参拝マナー"]
+    }
+    experience_type = str_web.selectbox(tx["act_label"], activity_mapping.get(current_lang, activity_mapping["English"]), index=None, placeholder=tx["act_holder"])
+    if experience_type and str_web.button(tx["guide_btn"], use_container_width=True):
+        with str_web.spinner("Generating..."):
+            placeholder = str_web.empty()
+            full_text = ""
+            for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide etiquette guide for '{experience_type}' in {loc_context}.", config=common_ai_config):
+                full_text += chunk.text
+                placeholder.markdown(full_text)
+
+    # --- Utilities Weather & Currency Cards ---
+    str_web.markdown("---")
+    str_web.markdown('''
+    <div class="utility-flex">
+        <div class="mini-card"><div class="mini-card-title">🌤️ Weather</div><div class="mini-card-value">⛅ 15°C</div></div>
+        <div class="mini-card"><div class="mini-card-title">💱 Currency</div><div class="mini-card-value">🇺🇸 1$ = 154¥ 🇯🇵</div></div>
+    </div>
+    ''', unsafe_allowed_html=True)
+    
+    col_w, col_c = str_web.columns(2)
+    with col_w:
+        if str_web.button(tx["weather_btn"], use_container_width=True, key="w_btn"):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide current month weather for {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.markdown(full_text)
+    with col_c:
+        yen_amount = str_web.number_input("Amount in JPY", min_value=0, value=1000, step=500)
+        if str_web.button(tx["calc_btn"], use_container_width=True, key="c_btn"):
+            with str_web.spinner("Calculating..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Convert {yen_amount} JPY to MMK/USD with recent rates.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.markdown(full_text)
+
+    # --- Lower Tabs Area ---
+    str_web.markdown("---")
+    str_web.markdown(f"### {tx['sec_utilities']}")
+    tab_safety, tab_expense, tab_bookmarks = str_web.tabs([tx["safety_box"], tx["expense_box"], tx["bookmark_box"]])
+
+    with tab_safety:
+        if str_web.button(tx["safety_btn"], use_container_width=True):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide disaster evacuation tips for tourists in {city}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.markdown(full_text)
+
+    with tab_expense:
+        exp_name = str_web.text_input("Expense Item", placeholder="Ramen")
+        exp_amt = str_web.number_input("Amount (JPY)", min_value=0, step=100, key="exp_num_input")
+        if str_web.button("➕ Add Expense", use_container_width=True) and exp_name and exp_amt > 0:
+            str_web.session_state.expenses.append({"item": exp_name, "cost": exp_amt})
+        if str_web.session_state.expenses:
+            str_web.markdown(f"Total Spent: **{sum(item['cost'] for item in str_web.session_state.expenses):,} JPY**")
+
+    with tab_bookmarks:
+        if str_web.session_state.bookmarks:
+            for mark in str_web.session_state.bookmarks:
+                str_web.markdown(f"📌 {mark}")
+        else:
+            str_web.caption("No saved locations yet.")
+else:
+    str_web.info("💡 Please select both Prefecture and City above to unlock travel assistance tools.")
