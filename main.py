@@ -6,6 +6,8 @@ from google.genai import types
 from PIL import Image
 # 音声録音機能のためのライブラリをインポート
 from streamlit_mic_recorder import mic_recorder
+# 【新規】超高速かつ無料のGroq APIライブラリをインポート
+from groq import Groq
 
 # 1. Page Config (ページ設定)
 str_web.set_page_config(page_title="TabiNavi Concierge", layout="wide", initial_sidebar_state="expanded")
@@ -36,7 +38,7 @@ str_web.markdown("""
         font-weight: 400 !important;
     }
 
-    /* Streamlitボタンをプレミアムカードスタイルに変更（PCでの視認性向上のため16pxに拡大） */
+    /* Streamlitボタンをプレミアムカードスタイルに変更 */
     div.stButton > button {
         background-color: #1A202C !important;
         color: #FFFFFF !important;
@@ -106,7 +108,7 @@ if "expenses" not in str_web.session_state:
 if "show_picker" not in str_web.session_state:
     str_web.session_state.show_picker = False
 
-# 【アピ制限対策】キャッシュストレージの初期化
+# キャッシュストレージの初期化
 if "ai_cache" not in str_web.session_state:
     str_web.session_state.ai_cache = {}
 if "current_city" not in str_web.session_state:
@@ -170,7 +172,7 @@ with str_web.sidebar:
     tx = ui_translations[current_lang]
 
     str_web.markdown("---")
-    # カメラ翻訳機能 (SDK v1 対応のため gemini-2.5-flash に固定)
+    # カメラ翻訳機能
     with str_web.expander(tx["cam_box"]):
         uploaded_file = str_web.file_uploader(tx["cam_upload"], type=["jpg", "jpeg", "png"])
         if uploaded_file and str_web.button("🔍 Translate Image", use_container_width=True):
@@ -181,7 +183,7 @@ with str_web.sidebar:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
-    # テキスト入力翻訳 ＋ 【アピ制限対策済み】音声リアルタイム通訳機能
+    # テキスト入力翻訳 ＋ 【超ハイブリッド】音声リアルタイム通訳機能
     with str_web.expander(tx["text_box"]):
         input_text = str_web.text_input(tx["text_input"], key="side_txt_in")
         if str_web.button("🌐 Translate Text", use_container_width=True) and input_text:
@@ -195,7 +197,6 @@ with str_web.sidebar:
         str_web.markdown("---")
         str_web.write("🎙️ **Voice Interpreter (音声リアルタイム通訳)**")
         
-        # 【アピ制限対策】1回の録音を最大30秒に制限して無駄なデータ消費を防止
         audio = mic_recorder(
             start_prompt="🎤 Start Recording (音声録音)",
             stop_prompt="🛑 Stop & Translate (通訳実行)",
@@ -206,34 +207,49 @@ with str_web.sidebar:
         if audio is not None:
             audio_bytes = audio['bytes']
             
-            # 【アピ制限対策】短すぎるデータや、大きすぎるファイル(1MB以上)を弾いてAPIの浪費を防ぐ
             if len(audio_bytes) < 100:
                 str_web.warning("⚠️ Audio data is too short. Please try again.")
-            elif len(audio_bytes) > 1 * 1024 * 1024:
-                str_web.error("⚠️ Audio file too large! Please speak under 30 seconds.")
             else:
-                with str_web.spinner("🤖 AIが音声を解析して通訳中..."):
-                    client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
-                    
-                    # 【アピ制限対策】AIの回答を短縮させてトークン消費と処理エラーを削減するプロンプト
-                    voice_prompt = f"""
-                    You are a real-time travel interpreter. Translate this audio strictly:
-                    1. Transcribe the raw text in original language.
-                    2. Translate it directly into {current_lang}.
-                    Keep the response ultra-short (under 2 sentences) to save API bandwidth. No fluff.
-                    """
-                    
+                with str_web.spinner("🤖 Groq APIが音声をテキストに変換中..."):
                     try:
-                        audio_data = types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav")
-                        placeholder = str_web.empty()
-                        full_text = ""
+                        # 1. 無料のGroq API (Whisper-Large-v3) を使って、音声ファイルをローカルでテキストに即時変換
+                        groq_client = Groq(api_key=str_web.secrets.get("GROQ_API_KEY"))
                         
-                        # SDK v1 対応のため gemini-2.5-flash を正常に使用
-                        for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=[voice_prompt, audio_data]):
-                            full_text += chunk.text
-                            placeholder.markdown(full_text)
+                        # 音声バイトデータをGroqが読み込めるタプル形式に設定
+                        audio_file_tuple = ("audio.wav", audio_bytes, "audio/wav")
+                        
+                        transcription = groq_client.audio.transcriptions.create(
+                            file=audio_file_tuple,
+                            model="whisper-large-v3", # 👈 世界最高精度の音声認識モデル
+                            response_format="text"
+                        )
+                        
+                        spoken_text = str(transcription).strip()
+                        
+                        # 認識されたテキストを表示
+                        str_web.markdown(f"**🗣️ Heard:** `{spoken_text}`")
+                        
+                        # 2. 変換された「テキスト」をGemini APIに送り、翻訳をリクエスト（テキスト同士のやり取りなのでクォータをほぼ消費しない）
+                        if spoken_text:
+                            with str_web.spinner("🌐 Gemini APIが翻訳中..."):
+                                gemini_client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
+                                
+                                gemini_prompt = f"""
+                                You are a professional travel translator. 
+                                The user spoke this text: '{spoken_text}'
+                                1. If it's in Japanese, show the original Japanese text and its Romaji.
+                                2. Translate it accurately and naturally into {current_lang}.
+                                Keep the response short and friendly.
+                                """
+                                
+                                placeholder = str_web.empty()
+                                full_text = ""
+                                for chunk in gemini_client.models.generate_content_stream(model="gemini-2.5-flash", contents=gemini_prompt):
+                                    full_text += chunk.text
+                                    placeholder.markdown(full_text)
+                                    
                     except Exception as e:
-                        str_web.error(f"Error processing audio: {e}")
+                        str_web.error(f"Error processing hybrid audio: {e}")
 
 # --- CORE ENGINE SETUP (データ読み込み) ---
 client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
@@ -273,7 +289,6 @@ if prefecture and city:
     
     with grid_col1:
         if str_web.button(f"🚄\n\n{tx['train_btn']}", use_container_width=True, key="btn_train_main"):
-            # キャッシュを活用して無駄なAPI呼び出しをカット
             if "train" in str_web.session_state.ai_cache:
                 str_web.info(str_web.session_state.ai_cache["train"])
             else:
@@ -312,7 +327,6 @@ if prefecture and city:
         if str_web.button(f"🌸\n\n{tx['itinerary_btn']}", use_container_width=True, key="btn_plan_main"):
             str_web.session_state.show_picker = True
 
-    # 日数選択ボックスの制御
     if str_web.session_state.show_picker:
         options_map = {
             "English": ["1 Day", "2 Days", "3 Days", "4 Days", "5 Days", "6 Days", "7 Days"],
@@ -334,7 +348,6 @@ if prefecture and city:
                     str_web.markdown(full_text)
             str_web.session_state.show_picker = False
 
-    # お気に入り保存ボタン
     st_bookmark = str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True)
     if st_bookmark:
         bookmark_item = f"{city} ({prefecture})"
@@ -342,12 +355,11 @@ if prefecture and city:
             str_web.session_state.bookmarks.append(bookmark_item)
             str_web.toast(f"Saved {city}!")
 
-    # Googleマップ埋め込み
     search_query = city.replace("区", "").replace("市", "") + f", {prefecture}"
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="280" style="border:0;"></iframe></div>', unsafe_allow_html=True)
 
-    # --- Etiquette Panel (マナーガイド) ---
+    # --- Etiquette Panel ---
     str_web.markdown("---")
     str_web.markdown(f"### {tx['sec_trip']}")
     activity_mapping = {
@@ -399,7 +411,7 @@ if prefecture and city:
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-    # --- Lower Tabs Area (下部タブエリア) ---
+    # --- Lower Tabs Area ---
     str_web.markdown("---")
     str_web.markdown(f"### {tx['sec_utilities']}")
     tab_safety, tab_expense, tab_bookmarks = str_web.tabs([tx["safety_box"], tx["expense_box"], tx["bookmark_box"]])
