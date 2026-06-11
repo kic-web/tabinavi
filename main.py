@@ -43,7 +43,7 @@ str_web.markdown("""
         border-radius: 12px !important;
         padding: 20px 10px !important;
         min-height: 110px !important;
-        font-size: 14px !important;
+        font-size: 16px !important;
         font-weight: 600 !important;
         white-space: pre-line !important;
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -112,7 +112,7 @@ ui_translations = {
         "pref_label": "Select Prefecture", "pref_holder": "Choose a prefecture...",
         "city_label": "Select City / Area", "city_holder": "Choose a city...",
         "sec_quick": "Quick Travel Services",
-        "train_btn": "Routes Guide", "food_btn": "Food & Dining", "hotel_btn": "Hotels", "itinerary_btn": "6 Days Plan",
+        "train_btn": "Routes Guide", "food_btn": "Food & Dining", "hotel_btn": "Hotels", "itinerary_btn": "Plan",
         "cam_box": "Smart Camera Translator", "cam_upload": "Upload image...",
         "text_box": "Text/Speech Translator", "text_input": "Enter text...",
         "sec_utilities": "Travel Utilities", "safety_box": "Disaster Safety Guide", "safety_btn": "Get Emergency Guide",
