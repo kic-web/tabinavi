@@ -5,100 +5,50 @@ from google import genai
 from google.genai import types
 from PIL import Image
 
-# 🎨 1. Page Configuration (Premium Modern Settings)
-str_web.set_page_config(
-    page_title="TabiNavi Concierge", 
-    layout="wide", 
-    initial_sidebar_state="expanded"
-)
+# 1. Page Config
+str_web.set_page_config(page_title="TabiNavi Concierge", layout="wide", initial_sidebar_state="expanded")
 
-# 💄 2. CRITICAL UI FORCE OVERRIDE (ဖိုင်ခွဲမနေဘဲ main.py ထဲ တိုက်ရိုက်ထည့်သွင်းခြင်း)
+# 2. Minimum Custom CSS (Only for Header Banner & Grid Card Layouts)
 str_web.markdown("""
 <style>
-    /* Global App Background & Text Color - Force Dark Mode Visibility */
-    .stApp {
-        background-color: #12161A !important;
-        color: #FFFFFF !important;
-        font-family: 'Inter', -apple-system, sans-serif !important;
-    }
-    
-    /* Ensure all text tags are crisp white to prevent black-on-black blending */
-    h1, h2, h3, h4, h5, h6, p, li, span, label, div {
-        color: #FFFFFF !important;
-    }
-
-    /* Premium Gradient Header Card */
+    /* Premium Header Card */
     .custom-header {
         background: linear-gradient(135deg, #0F3A40 0%, #1D5B66 100%) !important;
-        padding: 24px 20px !important;
-        border-radius: 16px !important;
+        padding: 20px !important;
+        border-radius: 12px !important;
         text-align: center !important;
-        margin-bottom: 25px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     }
     .custom-header h1 {
-        font-size: 28px !important;
-        font-weight: 800 !important;
-        margin: 0 0 6px 0 !important;
+        font-size: 26px !important;
+        font-weight: 700 !important;
         color: #FFFFFF !important;
-    }
-    .subtitle-text {
-        color: #B0C4DE !important;
-        font-size: 14px !important;
         margin: 0 !important;
     }
-
-    /* CRITICAL FIX: Selectbox Labels & Dropdown Lists Visibility */
-    div[data-baseweb="select"], div[data-baseweb="input"] {
-        background-color: #FFFFFF !important;
-        border-radius: 10px !important;
-        border: 1px solid #E2E8F0 !important;
-    }
-    
-    /* Force input text inside selectboxes to be Dark Charcoal (Readable) */
-    div[data-baseweb="select"] div, div[data-baseweb="select"] span {
-        color: #1A202C !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Input label contrast */
-    div[data-testid="stWidgetLabel"] p, label[data-testid="stWidgetLabel"] {
+    .subtitle-text {
         color: #E2E8F0 !important;
-        font-weight: 600 !important;
-        font-size: 14px !important;
-    }
-    
-    /* Dropdown list popover container fixing */
-    div[data-testid="stSelectbox"] ul, div[role="listbox"], ul[role="listbox"] {
-        background-color: #FFFFFF !important;
-    }
-    div[data-testid="stSelectbox"] li, div[role="option"], li[role="option"] {
-        color: #1A202C !important;
-        background-color: #FFFFFF !important;
-    }
-    div[data-testid="stSelectbox"] li:hover {
-        background-color: #EDF2F7 !important;
+        font-size: 13px !important;
+        margin-top: 4px !important;
     }
 
-    /* Mobile-Friendly Responsive 2x2 Grid Layout for Service Cards */
+    /* 2x2 Responsive Grid Layout for Mobile */
     .grid-container {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 12px !important;
-        margin: 15px 0 25px 0 !important;
+        margin: 15px 0 20px 0 !important;
     }
     .grid-card {
-        background-color: #20262E !important;
-        border: 1px solid #3A4454 !important;
-        border-radius: 14px !important;
-        padding: 16px 10px !important;
+        background-color: #1A202C !important;
+        border: 1px solid #2D3748 !important;
+        border-radius: 12px !important;
+        padding: 15px 10px !important;
         text-align: center !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
     }
     .card-emoji {
-        font-size: 32px !important;
-        margin-bottom: 6px !important;
+        font-size: 28px !important;
+        margin-bottom: 4px !important;
         display: block !important;
     }
     .card-title {
@@ -106,35 +56,6 @@ str_web.markdown("""
         font-size: 13px !important;
         font-weight: 600 !important;
         margin: 0 !important;
-    }
-
-    /* Premium Button Stylings Override */
-    div.stButton > button {
-        background-color: transparent !important;
-        color: #FFFFFF !important;
-        border: 1px solid #4A5568 !important;
-        border-radius: 12px !important;
-        padding: 10px 20px !important;
-        width: 100% !important;
-        font-weight: 600 !important;
-    }
-    div.stButton > button:hover, div.stButton > button:active {
-        background-color: #1D5B66 !important;
-        border-color: #1D5B66 !important;
-    }
-
-    /* Maps & Sidebar Elements */
-    .map-wrapper iframe {
-        border-radius: 14px !important;
-        border: 1px solid #3A4454 !important;
-    }
-    section[data-testid="stSidebar"] {
-        background-color: #1A202C !important;
-        border-right: 1px solid #2D3748 !important;
-    }
-    section[data-testid="stSidebar"] details {
-        background-color: #2D3748 !important;
-        border-radius: 8px !important;
     }
 
     /* Utility Row Widgets Layout */
@@ -148,8 +69,8 @@ str_web.markdown("""
         flex: 1 !important;
         background-color: #1A202C !important;
         border: 1px solid #2D3748 !important;
-        border-radius: 12px !important;
-        padding: 12px !important;
+        border-radius: 10px !important;
+        padding: 10px !important;
         text-align: center !important;
     }
     .mini-card-title {
@@ -158,14 +79,17 @@ str_web.markdown("""
         text-transform: uppercase !important;
     }
     .mini-card-value {
-        font-size: 16px !important;
+        font-size: 15px !important;
         font-weight: 700 !important;
         color: #FFFFFF !important;
+    }
+    .map-wrapper iframe {
+        border-radius: 12px !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. INITIALIZE STATE & DATA CORE ---
+# Initialize Session States
 if "bookmarks" not in str_web.session_state:
     str_web.session_state.bookmarks = []
 if "expenses" not in str_web.session_state:
@@ -173,6 +97,7 @@ if "expenses" not in str_web.session_state:
 if "show_picker" not in str_web.session_state:
     str_web.session_state.show_picker = False
 
+# Translations Dictionary
 ui_translations = {
     "English": {
         "title": "TabiNavi Concierge", "sub": "Your Next-Gen AI Travel Companion",
@@ -197,7 +122,7 @@ ui_translations = {
         "train_btn": "ရထားလမ်းကြောင်း", "food_btn": "အစားအသောက်ဆိုင်", "hotel_btn": "ဟိုတယ်တည်းခိုခန်း", "itinerary_btn": "ခရီးစဉ်အကြံပြုချက်",
         "cam_box": "Smart ကင်မရာ ဘာသာပြန်စနစ်", "cam_upload": "ပုံရိပ် တင်ပေးပါ...",
         "text_box": "အချိန်နဲ့တပြေးညီ ဘာသာပြန်", "text_input": "စာသားရိုက်ပါ...",
-        "sec_utilities": "ခရီးသွား အသုံးဆောင်များနှင့် စာရင်းများ", "safety_box": "သဘာဝဘေးအန္တရာယ် ဘေးကင်းလုံကြုံရေး", "safety_btn": "အရေးပေါ် လမ်းညွှန်ချက်ရယူမည်",
+        "sec_utilities": "ခရီးသွား အသုံးဆောင်များနှင့် စာရင်းများ", "safety_box": "သဘာဝဘေးအန္တရာယ် ဘေးကင်းလုံခြုံရေး", "safety_btn": "အရေးပေါ် လမ်းညွှန်ချက်ရယူမည်",
         "expense_box": "ခရီးသွားစရိတ် မှတ်တမ်း", "bookmark_box": "မှတ်သားထားသော နေရာများ",
         "sec_trip": "ပြုလုပ်မည့် အတွေ့အကြုံများနှင့် စည်းကမ်းများ", "act_label": "လုပ်ဆောင်မည့် အတွေ့အကြုံ အမျိုးအစား", "act_holder": "အတွေ့အကြုံ ရွေးချယ်ရန်...",
         "guide_btn": "လမ်းညွှန်ချက် ထုတ်လုပ်မည်", "weather_box": "ရာသီဥတုနှင့် ဝတ်စားဆင်ယင်မှု လမ်းညွှန်", "weather_btn": "ရာသီဥတု စစ်မည်",
@@ -221,7 +146,7 @@ ui_translations = {
     },
 }
 
-# --- 4. SIDEBAR PANEL ---
+# --- SIDEBAR TOOLS ---
 with str_web.sidebar:
     str_web.markdown(f"### ⚙️ {ui_translations['English']['sidebar_title']}")
     language_options = {"🇺🇸 English": "English", "🇲🇲 Myanmar (မြန်မာ)": "Myanmar", "🇯🇵 Japanese": "Japanese"}
@@ -250,14 +175,14 @@ with str_web.sidebar:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
-# --- 5. DATA INGESTION ---
+# --- CORE ENGINE SETUP ---
 client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
 prefecture_city_map = {}
 if os.path.exists("japan_data.json"):
     with open("japan_data.json", "r", encoding="utf-8") as f:
         prefecture_city_map = json.load(f)
 
-# Top Premium Banner Container
+# Top Premium Title Banner
 str_web.markdown(f'''
 <div class="custom-header">
     <h1>{tx["title"]}</h1>
@@ -265,7 +190,7 @@ str_web.markdown(f'''
 </div>
 ''', unsafe_allow_html=True)
 
-# Filter Layout Row
+# Select Filter Area
 col_pref, col_city = str_web.columns(2)
 with col_pref:
     prefecture = str_web.selectbox(tx["pref_label"], list(prefecture_city_map.keys()) if prefecture_city_map else [], index=None, placeholder=tx["pref_holder"])
@@ -274,12 +199,12 @@ with col_city:
 
 common_ai_config = types.GenerateContentConfig(temperature=0.7, system_instruction=f"Respond using concise, short bullet points. Output language: {current_lang}.")
 
-# --- 6. CORE APP INTERACTION ---
+# --- USER VIEW INTERACTION ---
 if prefecture and city:
     loc_context = f"{city}, {prefecture}"
     str_web.markdown(f"### {tx['sec_quick']}")
     
-    # Custom HTML 2x2 Responsive Grid Card Elements
+    # Custom HTML 2x2 Responsive Service Cards
     str_web.markdown(f'''
     <div class="grid-container">
         <div class="grid-card"><span class="card-emoji">🚄</span><p class="card-title">{tx["train_btn"]}</p></div>
@@ -289,7 +214,7 @@ if prefecture and city:
     </div>
     ''', unsafe_allow_html=True)
     
-    # Native Streamlit Action Buttons Core
+    # Execution Grid Buttons Action
     grid_btn_1, grid_btn_2 = str_web.columns(2)
     with grid_btn_1:
         if str_web.button(f"🚄 {tx['train_btn']}", use_container_width=True):
@@ -343,17 +268,17 @@ if prefecture and city:
             str_web.session_state.bookmarks.append(bookmark_item)
             str_web.toast(f"Saved {city}!")
 
-    # Embedded Responsive Map
+    # Google Map Embed
     search_query = city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="240" style="border:0;"></iframe></div>', unsafe_allow_html=True)
 
-    # --- Trip Activities Etiquette ---
+    # --- Etiquette Panel ---
     str_web.markdown("---")
     str_web.markdown(f"### {tx['sec_trip']}")
     activity_mapping = {
         "English": ["Shopping at supermarkets & cooking", "Sento/Onsen etiquette & bathing", "Riding local buses and fares", "Visiting shrines and temples"],
-        "Myanmar": ["ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်း", "အများသုံးရေချိုးခန်း (Onsen) Сည်းကမ်းများ", "ဒေသန္တရဘတ်စ်ကားများ စီးနင်းခြင်း", "ဘုရားကျောင်းများနှင့် နတ်ကွန်းများသို့ လည်ပတ်ခြင်း"],
+        "Myanmar": ["ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်း", "အများသုံးရေချိုးခန်း (Onsen) စည်းကမ်းများ", "ဒေသန္တရဘတ်စ်ကားများ စီးနင်းခြင်း", "ဘုရားကျောင်းများနှင့် နတ်ကွန်းများသို့ လည်ပတ်ခြင်း"],
         "Japanese": ["スーパーでの買い物と自炊", "銭湯・温泉の入浴マナー", "路線バスの利用方法と運賃", "神社・仏閣の参拝マナー"]
     }
     experience_type = str_web.selectbox(tx["act_label"], activity_mapping.get(current_lang, activity_mapping["English"]), index=None, placeholder=tx["act_holder"])
@@ -365,7 +290,7 @@ if prefecture and city:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
-    # --- Utilities Weather & Currency Flex Mini Display ---
+    # --- Utilities Weather & Currency Cards ---
     str_web.markdown("---")
     str_web.markdown('''
     <div class="utility-flex">
@@ -380,7 +305,7 @@ if prefecture and city:
             with str_web.spinner("Loading..."):
                 placeholder = str_web.empty()
                 full_text = ""
-                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide 2026 current month weather for {loc_context}.", config=common_ai_config):
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide current month weather for {loc_context}.", config=common_ai_config):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
     with col_c:
@@ -389,11 +314,11 @@ if prefecture and city:
             with str_web.spinner("Calculating..."):
                 placeholder = str_web.empty()
                 full_text = ""
-                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Convert {yen_amount} JPY to MMK/USD with 2026 rates.", config=common_ai_config):
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Convert {yen_amount} JPY to MMK/USD with recent rates.", config=common_ai_config):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-    # --- Lower Tabs Utilities ---
+    # --- Lower Tabs Area ---
     str_web.markdown("---")
     str_web.markdown(f"### {tx['sec_utilities']}")
     tab_safety, tab_expense, tab_bookmarks = str_web.tabs([tx["safety_box"], tx["expense_box"], tx["bookmark_box"]])
