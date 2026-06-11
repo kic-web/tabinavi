@@ -106,13 +106,13 @@ if "expenses" not in str_web.session_state:
 if "show_picker" not in str_web.session_state:
     str_web.session_state.show_picker = False
 
-# 【アピ対策】キャッシュストレージの初期化
+# 【アピ制限対策】キャッシュストレージの初期化
 if "ai_cache" not in str_web.session_state:
     str_web.session_state.ai_cache = {}
 if "current_city" not in str_web.session_state:
     str_web.session_state.current_city = ""
 
-# 多言語対応辞書
+# 多言語対応辞書（"6 Days Plan" を簡潔な "Plan" に変更）
 ui_translations = {
     "English": {
         "title": "TabiNavi Concierge", "sub": "Your Next-Gen AI Travel Companion",
@@ -137,7 +137,7 @@ ui_translations = {
         "train_btn": "ရထားလမ်းကြောင်း", "food_btn": "အစားအသောက်ဆိုင်", "hotel_btn": "ဟိုတယ်တည်းခိုခန်း", "itinerary_btn": "ခရီးစဉ်စီစဉ်ရန်",
         "cam_box": "Smart ကင်မရာ ဘာသာပြန်စနစ်", "cam_upload": "ပုံရိပ် တင်ပေးပါ...",
         "text_box": "အချိန်နဲ့တပြေးညီ ဘာသာပြန်စနစ်", "text_input": "စာသားရိုက်ပါ...",
-        "sec_utilities": "ခရီးသွား အသုံးဆောင်များနှင့် စာရင်းများ", "safety_box": "သဘာဝဘေးအန္တရာယ် ဘေးကင်းလုံ藉ရေး", "safety_btn": "အရေးပေါ် လမ်းညွှန်ချက်ရယူမည်",
+        "sec_utilities": "ခရီးသွား အသုံးဆောင်များနှင့် စာရင်းများ", "safety_box": "သဘာဝဘေးအန္တရာယ် ဘေးကင်းလုံခြုံရေး", "safety_btn": "အရေးပေါ် လမ်းညွှန်ချက်ရယူမည်",
         "expense_box": "ခရီးသွားစရိတ် မှတ်တမ်း", "bookmark_box": "မှတ်သားထားသော နေရာများ",
         "sec_trip": "ပြုလုပ်မည့် အတွေ့အကြုံများနှင့် စည်းကမ်းများ", "act_label": "လုပ်ဆောင်မည့် အတွေ့အကြုံ အမျိုးအစား", "act_holder": "အတွေ့အကြုံ ရွေးချယ်ရန်...",
         "guide_btn": "လမ်းညွှန်ချက် ထုတ်လုပ်မည်", "weather_box": "ရာသီဥတုနှင့် ဝတ်စားဆင်ယင်မှု လမ်းညွှန်", "weather_btn": "ရာသီဥတု စစ်မည်",
@@ -170,14 +170,14 @@ with str_web.sidebar:
     tx = ui_translations[current_lang]
 
     str_web.markdown("---")
-    # カメラ翻訳機能
+    # カメラ翻訳機能 (SDK v1 対応のため gemini-2.5-flash に固定)
     with str_web.expander(tx["cam_box"]):
         uploaded_file = str_web.file_uploader(tx["cam_upload"], type=["jpg", "jpeg", "png"])
         if uploaded_file and str_web.button("🔍 Translate Image", use_container_width=True):
             client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
             placeholder = str_web.empty()
             full_text = ""
-            for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=[f"Translate into {current_lang}:", Image.open(uploaded_file)]):
+            for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=[f"Translate into {current_lang}:", Image.open(uploaded_file)]):
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
@@ -188,14 +188,14 @@ with str_web.sidebar:
             client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
             placeholder = str_web.empty()
             full_text = ""
-            for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"Translate into Japanese with Romaji: '{input_text}'"):
+            for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Translate into Japanese with Romaji: '{input_text}'"):
                 full_text += chunk.text
                 placeholder.markdown(full_text)
                 
         str_web.markdown("---")
         str_web.write("🎙️ **Voice Interpreter (音声リアルタイム通訳)**")
         
-        # 【アピ対策】無駄な長話によるエラーを防ぐため、1回の録音を最大30秒に制限
+        # 【アピ制限対策】1回の録音を最大30秒に制限して無駄なデータ消費を防止
         audio = mic_recorder(
             start_prompt="🎤 Start Recording (音声録音)",
             stop_prompt="🛑 Stop & Translate (通訳実行)",
@@ -206,7 +206,7 @@ with str_web.sidebar:
         if audio is not None:
             audio_bytes = audio['bytes']
             
-            # 【アピ対策】空のデータや、大きすぎるファイル(1MB以上)を弾いてリクエストの浪費を防ぐ
+            # 【アピ制限対策】短すぎるデータや、大きすぎるファイル(1MB以上)を弾いてAPIの浪費を防ぐ
             if len(audio_bytes) < 100:
                 str_web.warning("⚠️ Audio data is too short. Please try again.")
             elif len(audio_bytes) > 1 * 1024 * 1024:
@@ -215,7 +215,7 @@ with str_web.sidebar:
                 with str_web.spinner("🤖 AIが音声を解析して通訳中..."):
                     client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
                     
-                    # 【アピ対策】AIの回答を極限まで短くし、トークン消費と処理エラーを削減する超厳格プロンプト
+                    # 【アピ制限対策】AIの回答を短縮させてトークン消費と処理エラーを削減するプロンプト
                     voice_prompt = f"""
                     You are a real-time travel interpreter. Translate this audio strictly:
                     1. Transcribe the raw text in original language.
@@ -228,8 +228,8 @@ with str_web.sidebar:
                         placeholder = str_web.empty()
                         full_text = ""
                         
-                        # 安定した1.5-flashを固定使用し、APIクォータ消費を最小化
-                        for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=[voice_prompt, audio_data]):
+                        # SDK v1 対応のため gemini-2.5-flash を正常に使用
+                        for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=[voice_prompt, audio_data]):
                             full_text += chunk.text
                             placeholder.markdown(full_text)
                     except Exception as e:
@@ -273,12 +273,13 @@ if prefecture and city:
     
     with grid_col1:
         if str_web.button(f"🚄\n\n{tx['train_btn']}", use_container_width=True, key="btn_train_main"):
+            # キャッシュを活用して無駄なAPI呼び出しをカット
             if "train" in str_web.session_state.ai_cache:
                 str_web.info(str_web.session_state.ai_cache["train"])
             else:
                 with str_web.spinner("Loading..."):
                     full_text = ""
-                    for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"Provide train route guide for {loc_context}.", config=common_ai_config):
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide train route guide for {loc_context}.", config=common_ai_config):
                         full_text += chunk.text
                     str_web.session_state.ai_cache["train"] = full_text
                     str_web.info(full_text)
@@ -290,7 +291,7 @@ if prefecture and city:
             else:
                 with str_web.spinner("Loading..."):
                     full_text = ""
-                    for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"List 3 famous food spots in {loc_context}.", config=common_ai_config):
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"List 3 famous food spots in {loc_context}.", config=common_ai_config):
                         full_text += chunk.text
                     str_web.session_state.ai_cache["food"] = full_text
                     str_web.success(full_text)
@@ -302,7 +303,7 @@ if prefecture and city:
             else:
                 with str_web.spinner("Loading..."):
                     full_text = ""
-                    for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"Recommend best hotel stay areas in {loc_context}.", config=common_ai_config):
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Recommend best hotel stay areas in {loc_context}.", config=common_ai_config):
                         full_text += chunk.text
                     str_web.session_state.ai_cache["hotel"] = full_text
                     str_web.warning(full_text)
@@ -311,6 +312,7 @@ if prefecture and city:
         if str_web.button(f"🌸\n\n{tx['itinerary_btn']}", use_container_width=True, key="btn_plan_main"):
             str_web.session_state.show_picker = True
 
+    # 日数選択ボックスの制御
     if str_web.session_state.show_picker:
         options_map = {
             "English": ["1 Day", "2 Days", "3 Days", "4 Days", "5 Days", "6 Days", "7 Days"],
@@ -326,12 +328,13 @@ if prefecture and city:
                 with str_web.spinner("Loading..."):
                     days_number = "".join(filter(str.isdigit, selected_days))
                     full_text = ""
-                    for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"Create {days_number}-day itinerary for {loc_context}.", config=common_ai_config):
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Create {days_number}-day itinerary for {loc_context}.", config=common_ai_config):
                         full_text += chunk.text
                     str_web.session_state.ai_cache[cache_key] = full_text
                     str_web.markdown(full_text)
             str_web.session_state.show_picker = False
 
+    # お気に入り保存ボタン
     st_bookmark = str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True)
     if st_bookmark:
         bookmark_item = f"{city} ({prefecture})"
@@ -339,11 +342,12 @@ if prefecture and city:
             str_web.session_state.bookmarks.append(bookmark_item)
             str_web.toast(f"Saved {city}!")
 
+    # Googleマップ埋め込み
     search_query = city.replace("区", "").replace("市", "") + f", {prefecture}"
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="280" style="border:0;"></iframe></div>', unsafe_allow_html=True)
 
-    # --- Etiquette Panel ---
+    # --- Etiquette Panel (マナーガイド) ---
     str_web.markdown("---")
     str_web.markdown(f"### {tx['sec_trip']}")
     activity_mapping = {
@@ -359,7 +363,7 @@ if prefecture and city:
         else:
             with str_web.spinner("Generating..."):
                 full_text = ""
-                for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"Provide etiquette guide for '{experience_type}' in {loc_context}.", config=common_ai_config):
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide etiquette guide for '{experience_type}' in {loc_context}.", config=common_ai_config):
                     full_text += chunk.text
                 str_web.session_state.ai_cache[cache_key] = full_text
                 str_web.markdown(full_text)
@@ -381,7 +385,7 @@ if prefecture and city:
             else:
                 with str_web.spinner("Loading..."):
                     full_text = ""
-                    for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"Provide current month weather for {loc_context}.", config=common_ai_config):
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide current month weather for {loc_context}.", config=common_ai_config):
                         full_text += chunk.text
                     str_web.session_state.ai_cache["weather"] = full_text
                     str_web.markdown(full_text)
@@ -391,11 +395,11 @@ if prefecture and city:
             with str_web.spinner("Calculating..."):
                 placeholder = str_web.empty()
                 full_text = ""
-                for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"Convert {yen_amount} JPY to MMK/USD with recent rates.", config=common_ai_config):
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Convert {yen_amount} JPY to MMK/USD with recent rates.", config=common_ai_config):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-    # --- Lower Tabs Area ---
+    # --- Lower Tabs Area (下部タブエリア) ---
     str_web.markdown("---")
     str_web.markdown(f"### {tx['sec_utilities']}")
     tab_safety, tab_expense, tab_bookmarks = str_web.tabs([tx["safety_box"], tx["expense_box"], tx["bookmark_box"]])
@@ -407,7 +411,7 @@ if prefecture and city:
             else:
                 with str_web.spinner("Loading..."):
                     full_text = ""
-                    for chunk in client.models.generate_content_stream(model="gemini-1.5-flash", contents=f"Provide disaster evacuation tips for tourists in {city}.", config=common_ai_config):
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide disaster evacuation tips for tourists in {city}.", config=common_ai_config):
                         full_text += chunk.text
                     str_web.session_state.ai_cache["safety"] = full_text
                     str_web.markdown(full_text)
