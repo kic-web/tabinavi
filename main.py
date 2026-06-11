@@ -8,6 +8,7 @@ from PIL import Image
 # 🎨 Streamlit Configuration
 str_web.set_page_config(page_title="TabiNavi Concierge", layout="wide", initial_sidebar_state="expanded")
 
+# 🔗 style.css ဖိုင်ကို လှမ်းချိတ်ဆက်ခြင်း
 if os.path.exists("style.css"):
     with open("style.css", "r", encoding="utf-8") as f:
         str_web.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -105,7 +106,8 @@ if os.path.exists("japan_data.json"):
     with open("japan_data.json", "r", encoding="utf-8") as f:
         prefecture_city_map = json.load(f)
 
-str_web.markdown(f'<div class="custom-header"><div class="logo-placeholder">🗻</div><div><h1>{tx["title"]}</h1><p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px;">{tx["sub"]}</p></div></div>', unsafe_allow_html=True)
+# Top Premium Gradient Header
+str_web.markdown(f'<div class="custom-header"><div><h1>{tx["title"]}</h1><p class="subtitle-text">{tx["sub"]}</p></div></div>', unsafe_allow_html=True)
 
 col_pref, col_city = str_web.columns(2)
 with col_pref:
@@ -120,8 +122,17 @@ if prefecture and city:
     loc_context = f"{city}, {prefecture}"
     str_web.markdown(f"### {tx['sec_quick']}")
     
-    # Card 1: Routes
-    str_web.markdown('<div class="service-card"><div class="service-icon">🚄</div><div class="service-info"><h4>Routes Guide</h4></div></div>', unsafe_allow_html=True)
+    # HTML Mobile Responsive 2x2 Grid Layout
+    str_web.markdown("""
+    <div class="grid-container">
+        <div class="grid-card"><span class="card-emoji">🚄</span><p class="card-title">Routes Guide</p></div>
+        <div class="grid-card"><span class="card-emoji">🍱</span><p class="card-title">Food & Dining</p></div>
+        <div class="grid-card"><span class="card-emoji">🏨</span><p class="card-title">Hotels</p></div>
+        <div class="grid-card"><span class="card-emoji">🌸</span><p class="card-title">Days Plan</p></div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Buttons triggers layout
     if str_web.button(tx["train_btn"], key="btn_train", use_container_width=True):
         with str_web.spinner("Connecting AI..."):
             placeholder = str_web.empty()
@@ -130,8 +141,6 @@ if prefecture and city:
                 full_text += chunk.text
                 placeholder.info(full_text)
 
-    # Card 2: Food & Dining
-    str_web.markdown('<div class="service-card"><div class="service-icon">🍱</div><div class="service-info"><h4>Food & Dining</h4></div></div>', unsafe_allow_html=True)
     if str_web.button(tx["food_btn"], key="btn_food", use_container_width=True):
         with str_web.spinner("Connecting AI..."):
             placeholder = str_web.empty()
@@ -140,8 +149,6 @@ if prefecture and city:
                 full_text += chunk.text
                 placeholder.success(full_text)
 
-    # Card 3: Hotels
-    str_web.markdown('<div class="service-card"><div class="service-icon">🏨</div><div class="service-info"><h4>Hotels</h4></div></div>', unsafe_allow_html=True)
     if str_web.button(tx["hotel_btn"], key="btn_hotel", use_container_width=True):
         with str_web.spinner("Connecting AI..."):
             placeholder = str_web.empty()
@@ -150,8 +157,6 @@ if prefecture and city:
                 full_text += chunk.text
                 placeholder.warning(full_text)
 
-    # Card 4: Days Plan
-    str_web.markdown('<div class="service-card"><div class="service-icon">📅</div><div class="service-info"><h4>Days Plan</h4></div></div>', unsafe_allow_html=True)
     if str_web.button(tx["itinerary_btn"], key="btn_days", use_container_width=True):
         str_web.session_state.show_picker = True
 
@@ -173,18 +178,17 @@ if prefecture and city:
                     placeholder.markdown(full_text)
             str_web.session_state.show_picker = False
 
-    # Bookmark & Map
-    str_web.markdown('<div class="bookmark-container">', unsafe_allow_html=True)
+    # Bookmark Action Button
     if str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True):
         bookmark_item = f"{city} ({prefecture})"
         if bookmark_item not in str_web.session_state.bookmarks:
             str_web.session_state.bookmarks.append(bookmark_item)
             str_web.toast(f"Saved {city}!")
-    str_web.markdown('</div>', unsafe_allow_html=True)
 
+    # Google Map
     search_query = city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
-    str_web.markdown(f'<iframe src="{map_url}" width="100%" height="240" style="border:0;"></iframe>', unsafe_allow_html=True)
+    str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="240" style="border:0;"></iframe></div>', unsafe_allow_html=True)
 
     # --- Etiquette Section ---
     str_web.markdown("---")
@@ -203,11 +207,17 @@ if prefecture and city:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
-    # --- Bottom Widgets ---
+    # --- Bottom Flex Mini Widgets ---
     str_web.markdown("---")
-    bot_col1, bot_col2 = str_web.columns(2)
-    with bot_col1:
-        str_web.markdown(f'<div class="utility-card"><h6>🌤️ {tx["weather_box"]}</h6></div>', unsafe_allow_html=True)
+    str_web.markdown("""
+    <div class="utility-flex">
+        <div class="mini-card"><div class="mini-card-title">🌤️ Weather</div><div class="mini-card-value">⛅ 15°C</div></div>
+        <div class="mini-card"><div class="mini-card-title">💱 Currency</div><div class="mini-card-value">🇺🇸 1$ = 154¥ 🇯🇵</div></div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col_w, col_c = str_web.columns(2)
+    with col_w:
         if str_web.button(tx["weather_btn"], use_container_width=True, key="w_btn"):
             with str_web.spinner("Loading..."):
                 placeholder = str_web.empty()
@@ -215,9 +225,7 @@ if prefecture and city:
                 for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide 2026 current month weather and clothing for {loc_context}.", config=common_ai_config):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
-
-    with bot_col2:
-        str_web.markdown(f'<div class="utility-card"><h6>💱 {tx["calc_box"]}</h6></div>', unsafe_allow_html=True)
+    with col_c:
         yen_amount = str_web.number_input("Amount in JPY", min_value=0, value=1000, step=500, label_visibility="collapsed")
         if str_web.button(tx["calc_btn"], use_container_width=True, key="c_btn"):
             with str_web.spinner("Calculating..."):
