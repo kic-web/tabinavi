@@ -8,7 +8,7 @@ from PIL import Image
 # 1. Page Config
 str_web.set_page_config(page_title="TabiNavi Concierge", layout="wide", initial_sidebar_state="expanded")
 
-# 2. Minimum Custom CSS (Only for Header Banner & Grid Card Layouts)
+# 2. Advanced Custom CSS (ကတ်ပြားပုံစံ ခလုတ်များအတွက် အထူးပြင်ဆင်ချက်)
 str_web.markdown("""
 <style>
     /* Premium Header Card */
@@ -32,30 +32,24 @@ str_web.markdown("""
         margin-top: 4px !important;
     }
 
-    /* 2x2 Responsive Grid Layout for Mobile */
-    .grid-container {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
-        margin: 15px 0 20px 0 !important;
-    }
-    .grid-card {
+    /* Streamlit Button ကို Premium Card Style ပြောင်းလဲခြင်း */
+    div.stButton > button {
         background-color: #1A202C !important;
+        color: #FFFFFF !important;
         border: 1px solid #2D3748 !important;
         border-radius: 12px !important;
-        padding: 15px 10px !important;
-        text-align: center !important;
-    }
-    .card-emoji {
-        font-size: 28px !important;
-        margin-bottom: 4px !important;
-        display: block !important;
-    }
-    .card-title {
-        color: #FFFFFF !important;
-        font-size: 13px !important;
+        padding: 20px 10px !important;
+        min-height: 110px !important;
+        font-size: 14px !important;
         font-weight: 600 !important;
-        margin: 0 !important;
+        white-space: pre-line !important;  /* \n စာကြောင်းဆင်းမှုကို အလုပ်လုပ်စေရန် */
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+    }
+    div.stButton > button:hover {
+        border-color: #1D5B66 !important;
+        background-color: #2D3748 !important;
+        transform: translateY(-3px) !important;
     }
 
     /* Utility Row Widgets Layout */
@@ -204,20 +198,13 @@ if prefecture and city:
     loc_context = f"{city}, {prefecture}"
     str_web.markdown(f"### {tx['sec_quick']}")
     
-    # Custom HTML 2x2 Responsive Service Cards
-    str_web.markdown(f'''
-    <div class="grid-container">
-        <div class="grid-card"><span class="card-emoji">🚄</span><p class="card-title">{tx["train_btn"]}</p></div>
-        <div class="grid-card"><span class="card-emoji">🍱</span><p class="card-title">{tx["food_btn"]}</p></div>
-        <div class="grid-card"><span class="card-emoji">🏨</span><p class="card-title">{tx["hotel_btn"]}</p></div>
-        <div class="grid-card"><span class="card-emoji">🌸</span><p class="card-title">{tx["itinerary_btn"]}</p></div>
-    </div>
-    ''', unsafe_allow_html=True)
+    # ✅ (အရေးကြီးဆုံးအချက်) 2x2 Responsive Image Card Layout ကို Button စစ်စစ်များအဖြစ် ပြောင်းလဲခြင်း
+    # Column ၄ ခုခွဲပြီး အီမိုဂျီနှင့် စာသားကို တစ်ပါတည်းပေါင်းစပ်ကာ ခလုတ်တစ်ခုတည်းအဖြစ် တည်ဆောက်ထားသည်။
+    grid_col1, grid_col2, grid_col3, grid_col4 = str_web.columns(4)
     
-    # Execution Grid Buttons Action
-    grid_btn_1, grid_btn_2 = str_web.columns(2)
-    with grid_btn_1:
-        if str_web.button(f"🚄 {tx['train_btn']}", use_container_width=True):
+    with grid_col1:
+        # \n\n ခံပြီး စာကြောင်းဆင်းထားခြင်းဖြင့် အပေါ်မှာအီမိုဂျီ၊ အောက်မှာစာသား ပုံစံကွက်တိထွက်လာပါမည်
+        if str_web.button(f"🚄\n\n{tx['train_btn']}", use_container_width=True, key="btn_train_main"):
             with str_web.spinner("Loading..."):
                 placeholder = str_web.empty()
                 full_text = ""
@@ -225,16 +212,8 @@ if prefecture and city:
                     full_text += chunk.text
                     placeholder.info(full_text)
 
-        if str_web.button(f"🏨 {tx['hotel_btn']}", use_container_width=True):
-            with str_web.spinner("Loading..."):
-                placeholder = str_web.empty()
-                full_text = ""
-                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Recommend best hotel stay areas in {loc_context}.", config=common_ai_config):
-                    full_text += chunk.text
-                    placeholder.warning(full_text)
-                    
-    with grid_btn_2:
-        if str_web.button(f"🍱 {tx['food_btn']}", use_container_width=True):
+    with grid_col2:
+        if str_web.button(f"🍱\n\n{tx['food_btn']}", use_container_width=True, key="btn_food_main"):
             with str_web.spinner("Loading..."):
                 placeholder = str_web.empty()
                 full_text = ""
@@ -242,9 +221,20 @@ if prefecture and city:
                     full_text += chunk.text
                     placeholder.success(full_text)
 
-        if str_web.button(f"🌸 {tx['itinerary_btn']}", use_container_width=True):
+    with grid_col3:
+        if str_web.button(f"🏨\n\n{tx['hotel_btn']}", use_container_width=True, key="btn_hotel_main"):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Recommend best hotel stay areas in {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.warning(full_text)
+
+    with grid_col4:
+        if str_web.button(f"🌸\n\n{tx['itinerary_btn']}", use_container_width=True, key="btn_plan_main"):
             str_web.session_state.show_picker = True
 
+    # ရက်ရွေးချယ်မှု စနစ်
     if str_web.session_state.show_picker:
         options_map = {
             "English": ["1 Day", "2 Days", "3 Days", "4 Days", "5 Days", "6 Days", "7 Days"],
@@ -262,7 +252,8 @@ if prefecture and city:
                     placeholder.markdown(full_text)
             str_web.session_state.show_picker = False
 
-    if str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True):
+    st_bookmark = str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True)
+    if st_bookmark:
         bookmark_item = f"{city} ({prefecture})"
         if bookmark_item not in str_web.session_state.bookmarks:
             str_web.session_state.bookmarks.append(bookmark_item)
