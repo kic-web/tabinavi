@@ -4,14 +4,16 @@ import streamlit as str_web
 from google import genai
 from google.genai import types
 from PIL import Image
+# 音声録音機能のためのライブラリをインポート
+from streamlit_mic_recorder import mic_recorder
 
-# 1. Page Config
+# 1. Page Config (ページ設定)
 str_web.set_page_config(page_title="TabiNavi Concierge", layout="wide", initial_sidebar_state="expanded")
 
-# 2. Advanced Custom CSS (UI/UX ပိုမိုကောင်းမွန်အောင် ပြင်ဆင်ထားသော စတိုင်များ)
+# 2. Advanced Custom CSS (UI/UXデザインのカスタマイズ)
 str_web.markdown("""
 <style>
-    /* Premium Header Card */
+    /* プレミアムヘッダーカードの設定 */
     .custom-header {
         background: linear-gradient(135deg, #0F3A40 0%, #1D5B66 100%) !important;
         padding: 24px 20px !important;
@@ -20,7 +22,6 @@ str_web.markdown("""
         margin-bottom: 25px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     }
-    /* Typography Hierarchy ကို ပိုမိုထင်ရှားစေခြင်း */
     .custom-header h1 {
         font-size: 32px !important; 
         font-weight: 800 !important;
@@ -35,7 +36,7 @@ str_web.markdown("""
         font-weight: 400 !important;
     }
 
-    /* Streamlit Button ကို Premium Card Style ပြောင်းလဲခြင်း + Hover Effect အသစ် */
+    /* Streamlitボタンをプレミアムカードスタイルに変更（PCでの視認性向上のため16pxに拡大） */
     div.stButton > button {
         background-color: #1A202C !important;
         color: #FFFFFF !important;
@@ -43,13 +44,13 @@ str_web.markdown("""
         border-radius: 12px !important;
         padding: 20px 10px !important;
         min-height: 110px !important;
-        font-size: 16px !important;
+        font-size: 16px !important; /* PC・スマホ両方で綺麗に見えるように調整 */
         font-weight: 600 !important;
         white-space: pre-line !important;
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
     }
-    /* Hover လုပ်လိုက်လျှင် သိသိသာသာ ပြောင်းလဲသွားမည့် အရောင်နှင့် ပုံစံ */
+    /* ボタンのホバーエフェクト（アニメーションと発光効果） */
     div.stButton > button:hover {
         border-color: #4FD1C5 !important;
         background-color: #2D3748 !important;
@@ -61,13 +62,13 @@ str_web.markdown("""
         transform: translateY(-1px) !important;
     }
 
-    /* Map Corner Area ကို ကတ်ပြားများနှင့် တစ်သားတည်းဖြစ်အောင် ညှိခြင်း */
+    /* Googleマップの枠線をカードデザインに統一 */
     .map-wrapper iframe {
         border-radius: 12px !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
     }
 
-    /* Utility Row Widgets Layout */
+    /* ユーティリティ行のレイアウト設定 */
     .utility-flex {
         display: flex !important;
         gap: 12px !important;
@@ -97,7 +98,7 @@ str_web.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize Session States
+# セッション状態（Session States）の初期化
 if "bookmarks" not in str_web.session_state:
     str_web.session_state.bookmarks = []
 if "expenses" not in str_web.session_state:
@@ -105,7 +106,7 @@ if "expenses" not in str_web.session_state:
 if "show_picker" not in str_web.session_state:
     str_web.session_state.show_picker = False
 
-# Translations Dictionary
+# 多言語対応辞書（"6 Days Plan" を簡潔な "Plan" に変更）
 ui_translations = {
     "English": {
         "title": "TabiNavi Concierge", "sub": "Your Next-Gen AI Travel Companion",
@@ -127,9 +128,9 @@ ui_translations = {
         "pref_label": "ပြည်နယ်/ခရိုင် ကို ရွေးချယ်ပါ", "pref_holder": "ခရိုင်တစ်ခု ရွေးချယ်ပေးပါ...",
         "city_label": "မြို/ဒေသ ကို ရွေးချယ်ပါ", "city_holder": "မြို့ကို ရွေးချယ်ပေးပါ...",
         "sec_quick": "အမြန်အသုံးပြုနိုင်မည့် ဝန်ဆောင်မှုများ",
-        "train_btn": "ရထားလမ်းကြောင်း", "food_btn": "အစားအသောက်ဆိုင်", "hotel_btn": "ဟိုတယ်တည်းခိုခန်း", "itinerary_btn": "ခရီးစဉ်အကြံပြုချက်",
+        "train_btn": "ရထားလမ်းကြောင်း", "food_btn": "အစားအသောက်ဆိုင်", "hotel_btn": "ဟိုတယ်တည်းခိုခန်း", "itinerary_btn": "ခရီးစဉ်စီစဉ်ရန်",
         "cam_box": "Smart ကင်မရာ ဘာသာပြန်စနစ်", "cam_upload": "ပုံရိပ် တင်ပေးပါ...",
-        "text_box": "အချိန်နဲ့တပြေးညီ ဘာသာပြန်", "text_input": "စာသားရိုက်ပါ...",
+        "text_box": "အချိန်နဲ့တပြေးညီ ဘာသာပြန်စနစ်", "text_input": "စာသားရိုက်ပါ...",
         "sec_utilities": "ခရီးသွား အသုံးဆောင်များနှင့် စာရင်းများ", "safety_box": "သဘာဝဘေးအန္တရာယ် ဘေးကင်းလုံခြုံရေး", "safety_btn": "အရေးပေါ် လမ်းညွှန်ချက်ရယူမည်",
         "expense_box": "ခရီးသွားစရိတ် မှတ်တမ်း", "bookmark_box": "မှတ်သားထားသော နေရာများ",
         "sec_trip": "ပြုလုပ်မည့် အတွေ့အကြုံများနှင့် စည်းကမ်းများ", "act_label": "လုပ်ဆောင်မည့် အတွေ့အကြုံ အမျိုးအစား", "act_holder": "အတွေ့အကြုံ ရွေးချယ်ရန်...",
@@ -142,9 +143,9 @@ ui_translations = {
         "pref_label": "都道府県を選択", "pref_holder": "都道府県 を選択してください...",
         "city_label": "市区町村を選択", "city_holder": "市区町村 を選択してください...",
         "sec_quick": "クイック旅行サービス",
-        "train_btn": "電車の乗換案内", "food_btn": "グルメ・周辺の飲食店", "hotel_btn": "おすすめの宿泊エリア", "itinerary_btn": "おすすめプラン",
+        "train_btn": "電車の乗換案内", "food_btn": "グルメ・周辺の飲食店", "hotel_btn": "おすすめの宿泊エリア", "itinerary_btn": "旅行プラン",
         "cam_box": "スマートカメラ翻訳", "cam_upload": "画像をアップロード...",
-        "text_box": "リアルタイム翻訳", "text_input": "テキストを入力...",
+        "text_box": "リアルタイム翻訳・音声通訳", "text_input": "テキストを入力...",
         "sec_utilities": "旅行ユーティリティ", "safety_box": "災害・防災ガイド", "safety_btn": "避難案内を取得",
         "expense_box": "旅費の家計簿", "bookmark_box": "お気に入り保存場所",
         "sec_trip": "アクティビティ & マナーガイド", "act_label": "アクティビティの種類を選択", "act_holder": "アクティビティを選択...",
@@ -154,7 +155,7 @@ ui_translations = {
     },
 }
 
-# --- SIDEBAR TOOLS ---
+# --- SIDEBAR TOOLS (サイドバーツール) ---
 with str_web.sidebar:
     str_web.markdown(f"### ⚙️ {ui_translations['English']['sidebar_title']}")
     language_options = {"🇺🇸 English": "English", "🇲🇲 Myanmar (မြန်မာ)": "Myanmar", "🇯🇵 Japanese": "Japanese"}
@@ -163,6 +164,7 @@ with str_web.sidebar:
     tx = ui_translations[current_lang]
 
     str_web.markdown("---")
+    # カメラ翻訳機能
     with str_web.expander(tx["cam_box"]):
         uploaded_file = str_web.file_uploader(tx["cam_upload"], type=["jpg", "jpeg", "png"])
         if uploaded_file and str_web.button("🔍 Translate Image", use_container_width=True):
@@ -173,7 +175,9 @@ with str_web.sidebar:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
+    # テキスト入力翻訳 ＋ 【新規】音声リアルタイム通訳機能
     with str_web.expander(tx["text_box"]):
+        # A. テキスト入力システム
         input_text = str_web.text_input(tx["text_input"], key="side_txt_in")
         if str_web.button("🌐 Translate Text", use_container_width=True) and input_text:
             client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
@@ -182,15 +186,65 @@ with str_web.sidebar:
             for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Translate into Japanese with Romaji: '{input_text}'"):
                 full_text += chunk.text
                 placeholder.markdown(full_text)
+                
+        str_web.markdown("---")
+        # B. 音声入力通訳システム（対面での会話用）
+        str_web.write("🎙️ **Voice Interpreter (音声リアルタイム通訳)**")
+        str_web.caption("ボタンをタップして会話を録音し、終了したらStopを押してください。AIが自動通訳します。")
+        
+        # マイクロフォンボタンの配置
+        audio = mic_recorder(
+            start_prompt="🎤 Start Recording (音声録音)",
+            stop_prompt="🛑 Stop & Translate (通訳実行)",
+            key='voice_translator',
+            use_container_width=True
+        )
+        
+        # 録音が完了した時の処理
+        if audio is not None:
+            audio_bytes = audio['bytes']
+            
+            with str_web.spinner("🤖 AIが音声を解析して通訳中..."):
+                client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
+                
+                # 音声解析用のプロンプト設定
+                voice_prompt = f"""
+                You are an expert real-time travel interpreter. Listen to this audio carefully.
+                1. Transcribe the spoken text exactly in its original language (if Japanese, provide Romaji too).
+                2. Translate it accurately and naturally into {current_lang}.
+                3. If needed, provide a 1-sentence tip on how the tourist should respond contextually.
+                Format the output clean and beautifully with emojis.
+                """
+                
+                try:
+                    # 音声データをGeminiが読み込める形式に変換
+                    audio_data = types.Part.from_bytes(
+                        data=audio_bytes,
+                        mime_type="audio/wav"
+                    )
+                    
+                    placeholder = str_web.empty()
+                    full_text = ""
+                    
+                    # Gemini 2.5 Flashのマルチモーダル機能で音声を通訳
+                    for chunk in client.models.generate_content_stream(
+                        model="gemini-2.5-flash", 
+                        contents=[voice_prompt, audio_data]
+                    ):
+                        full_text += chunk.text
+                        placeholder.markdown(full_text)
+                        
+                except Exception as e:
+                    str_web.error(f"Error processing audio: {e}")
 
-# --- CORE ENGINE SETUP ---
+# --- CORE ENGINE SETUP (データ読み込み) ---
 client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
 prefecture_city_map = {}
 if os.path.exists("japan_data.json"):
     with open("japan_data.json", "r", encoding="utf-8") as f:
         prefecture_city_map = json.load(f)
 
-# Top Premium Title Banner
+# トップバナーの表示
 str_web.markdown(f'''
 <div class="custom-header">
     <h1>{tx["title"]}</h1>
@@ -198,7 +252,7 @@ str_web.markdown(f'''
 </div>
 ''', unsafe_allow_html=True)
 
-# Select Filter Area
+# 地域選択フィルター
 col_pref, col_city = str_web.columns(2)
 with col_pref:
     prefecture = str_web.selectbox(tx["pref_label"], list(prefecture_city_map.keys()) if prefecture_city_map else [], index=None, placeholder=tx["pref_holder"])
@@ -207,7 +261,7 @@ with col_city:
 
 common_ai_config = types.GenerateContentConfig(temperature=0.7, system_instruction=f"Respond using concise, short bullet points. Output language: {current_lang}.")
 
-# --- USER VIEW INTERACTION ---
+# --- USER VIEW INTERACTION (メインコンテンツ) ---
 if prefecture and city:
     loc_context = f"{city}, {prefecture}"
     str_web.markdown(f"### {tx['sec_quick']}")
@@ -245,7 +299,7 @@ if prefecture and city:
         if str_web.button(f"🌸\n\n{tx['itinerary_btn']}", use_container_width=True, key="btn_plan_main"):
             str_web.session_state.show_picker = True
 
-    # ရက်ရွေးချယ်မှု စနစ်
+    # 日数選択ボックスの制御
     if str_web.session_state.show_picker:
         options_map = {
             "English": ["1 Day", "2 Days", "3 Days", "4 Days", "5 Days", "6 Days", "7 Days"],
@@ -263,6 +317,7 @@ if prefecture and city:
                     placeholder.markdown(full_text)
             str_web.session_state.show_picker = False
 
+    # お気に入り保存ボタン
     st_bookmark = str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True)
     if st_bookmark:
         bookmark_item = f"{city} ({prefecture})"
@@ -270,12 +325,12 @@ if prefecture and city:
             str_web.session_state.bookmarks.append(bookmark_item)
             str_web.toast(f"Saved {city}!")
 
-    # 🛠️ Google Map Embed Link ပြင်ဆင်ချက် (URL အမှားနှင့် Query စနစ်ကို ပိုမှန်အောင် ညှိထားသည်)
+    # Googleマップ埋め込み（URLの修正とデザインの最適化）
     search_query = city.replace("区", "").replace("市", "") + f", {prefecture}"
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="280" style="border:0;"></iframe></div>', unsafe_allow_html=True)
 
-    # --- Etiquette Panel ---
+    # --- Etiquette Panel (マナーガイド) ---
     str_web.markdown("---")
     str_web.markdown(f"### {tx['sec_trip']}")
     activity_mapping = {
@@ -292,7 +347,7 @@ if prefecture and city:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
-    # --- Utilities Weather & Currency Cards ---
+    # --- Utilities Weather & Currency Cards (天気と為替カード) ---
     str_web.markdown("---")
     str_web.markdown('''
     <div class="utility-flex">
@@ -320,7 +375,7 @@ if prefecture and city:
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-    # --- Lower Tabs Area ---
+    # --- Lower Tabs Area (下部タブエリア) ---
     str_web.markdown("---")
     str_web.markdown(f"### {tx['sec_utilities']}")
     tab_safety, tab_expense, tab_bookmarks = str_web.tabs([tx["safety_box"], tx["expense_box"], tx["bookmark_box"]])
