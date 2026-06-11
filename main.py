@@ -5,10 +5,10 @@ from google import genai
 from google.genai import types
 from PIL import Image
 
-# 🎨 Streamlit Configuration
+# Page config injection
 str_web.set_page_config(page_title="TabiNavi Concierge", layout="wide", initial_sidebar_state="expanded")
 
-# 🔗 style.css ဖိုင်ကို လှမ်းချိတ်ဆက်ခြင်း
+# Load CSS cleanly
 if os.path.exists("style.css"):
     with open("style.css", "r", encoding="utf-8") as f:
         str_web.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -21,14 +21,14 @@ if "expenses" not in str_web.session_state:
 if "show_picker" not in str_web.session_state:
     str_web.session_state.show_picker = False
 
-# --- 🌐 MULTI-LANGUAGE DICTIONARY ---
+# --- UI Dictionary Core ---
 ui_translations = {
     "English": {
         "title": "TabiNavi Concierge", "sub": "Your Next-Gen AI Travel Companion",
         "pref_label": "Select Prefecture", "pref_holder": "Choose a prefecture...",
         "city_label": "Select City / Area", "city_holder": "Choose a city...",
         "sec_quick": "Quick Travel Services",
-        "train_btn": "Routes", "food_btn": "Food & Dining", "hotel_btn": "Hotels", "itinerary_btn": "Planner",
+        "train_btn": "Routes Guide", "food_btn": "Food & Dining", "hotel_btn": "Hotels", "itinerary_btn": "6 Days Plan",
         "cam_box": "Smart Camera Translator", "cam_upload": "Upload image...",
         "text_box": "Text/Speech Translator", "text_input": "Enter text...",
         "sec_utilities": "Travel Utilities", "safety_box": "Disaster Safety Guide", "safety_btn": "Get Emergency Guide",
@@ -70,7 +70,7 @@ ui_translations = {
     },
 }
 
-# --- ⚙️ SIDEBAR ---
+# --- SIDEBAR CONTROL PANEL ---
 with str_web.sidebar:
     str_web.markdown(f"### ⚙️ {ui_translations['English']['sidebar_title']}")
     language_options = {"🇺🇸 English": "English", "🇲🇲 Myanmar (မြန်မာ)": "Myanmar", "🇯🇵 Japanese": "Japanese"}
@@ -91,7 +91,7 @@ with str_web.sidebar:
 
     with str_web.expander(tx["text_box"]):
         input_text = str_web.text_input(tx["text_input"], key="side_txt_in")
-        if str_web.button("🌐 Translate", use_container_width=True) and input_text:
+        if str_web.button("🌐 Translate Text", use_container_width=True) and input_text:
             client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
             placeholder = str_web.empty()
             full_text = ""
@@ -99,16 +99,22 @@ with str_web.sidebar:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
-# --- CLIENT INIT & DATA FILTERS ---
+# --- ENGINE SETUP ---
 client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
 prefecture_city_map = {}
 if os.path.exists("japan_data.json"):
     with open("japan_data.json", "r", encoding="utf-8") as f:
         prefecture_city_map = json.load(f)
 
-# Top Premium Gradient Header
-str_web.markdown(f'<div class="custom-header"><div><h1>{tx["title"]}</h1><p class="subtitle-text">{tx["sub"]}</p></div></div>', unsafe_allow_html=True)
+# Premium Header Container
+str_web.markdown(f'''
+<div class="custom-header">
+    <h1>{tx["title"]}</h1>
+    <p class="subtitle-text">{tx["sub"]}</p>
+</div>
+''', unsafe_allow_html=True)
 
+# Selectboxes Core
 col_pref, col_city = str_web.columns(2)
 with col_pref:
     prefecture = str_web.selectbox(tx["pref_label"], list(prefecture_city_map.keys()) if prefecture_city_map else [], index=None, placeholder=tx["pref_holder"])
@@ -117,48 +123,51 @@ with col_city:
 
 common_ai_config = types.GenerateContentConfig(temperature=0.7, system_instruction=f"Respond using concise, short bullet points. Output language: {current_lang}.")
 
-# --- MAIN ASSISTANCE LOGIC ---
+# --- POST-SELECTION VIEW ---
 if prefecture and city:
     loc_context = f"{city}, {prefecture}"
     str_web.markdown(f"### {tx['sec_quick']}")
     
-    # HTML Mobile Responsive 2x2 Grid Layout
-    str_web.markdown("""
+    # 2x2 Grid View Rendering
+    str_web.markdown(f'''
     <div class="grid-container">
-        <div class="grid-card"><span class="card-emoji">🚄</span><p class="card-title">Routes Guide</p></div>
-        <div class="grid-card"><span class="card-emoji">🍱</span><p class="card-title">Food & Dining</p></div>
-        <div class="grid-card"><span class="card-emoji">🏨</span><p class="card-title">Hotels</p></div>
-        <div class="grid-card"><span class="card-emoji">🌸</span><p class="card-title">Days Plan</p></div>
+        <div class="grid-card"><span class="card-emoji">🚄</span><p class="card-title">{tx["train_btn"]}</p></div>
+        <div class="grid-card"><span class="card-emoji">🍱</span><p class="card-title">{tx["food_btn"]}</p></div>
+        <div class="grid-card"><span class="card-emoji">🏨</span><p class="card-title">{tx["hotel_btn"]}</p></div>
+        <div class="grid-card"><span class="card-emoji">🌸</span><p class="card-title">{tx["itinerary_btn"]}</p></div>
     </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
     
-    # Buttons triggers layout
-    if str_web.button(tx["train_btn"], key="btn_train", use_container_width=True):
-        with str_web.spinner("Connecting AI..."):
-            placeholder = str_web.empty()
-            full_text = ""
-            for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide train route guide for {loc_context}.", config=common_ai_config):
-                full_text += chunk.text
-                placeholder.info(full_text)
+    # Native interaction buttons grid
+    grid_btn_1, grid_btn_2 = str_web.columns(2)
+    with grid_btn_1:
+        if str_web.button(f"🚄 {tx['train_btn']}", use_container_width=True):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide train route guide for {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.info(full_text)
 
-    if str_web.button(tx["food_btn"], key="btn_food", use_container_width=True):
-        with str_web.spinner("Connecting AI..."):
-            placeholder = str_web.empty()
-            full_text = ""
-            for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"List 3 famous food spots in {loc_context}.", config=common_ai_config):
-                full_text += chunk.text
-                placeholder.success(full_text)
+        if str_web.button(f"🏨 {tx['hotel_btn']}", use_container_width=True):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Recommend best hotel stay areas in {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.warning(full_text)
+                    
+    with grid_btn_2:
+        if str_web.button(f"🍱 {tx['food_btn']}", use_container_width=True):
+            with str_web.spinner("Loading..."):
+                placeholder = str_web.empty()
+                full_text = ""
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"List 3 famous food spots in {loc_context}.", config=common_ai_config):
+                    full_text += chunk.text
+                    placeholder.success(full_text)
 
-    if str_web.button(tx["hotel_btn"], key="btn_hotel", use_container_width=True):
-        with str_web.spinner("Connecting AI..."):
-            placeholder = str_web.empty()
-            full_text = ""
-            for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Recommend best hotel stay areas in {loc_context}.", config=common_ai_config):
-                full_text += chunk.text
-                placeholder.warning(full_text)
-
-    if str_web.button(tx["itinerary_btn"], key="btn_days", use_container_width=True):
-        str_web.session_state.show_picker = True
+        if str_web.button(f"🌸 {tx['itinerary_btn']}", use_container_width=True):
+            str_web.session_state.show_picker = True
 
     if str_web.session_state.show_picker:
         options_map = {
@@ -166,10 +175,9 @@ if prefecture and city:
             "Myanmar": ["1 ရက်စာ", "2 ရက်စာ", "3 ရက်စာ", "4 ရက်စာ", "5 ရက်စာ", "6 ရက်စာ", "7 ရက်စာ"],
             "Japanese": ["1日間", "2日間", "3日間", "4日間", "5日間", "6日間", "7日間"]
         }
-        selected_days = str_web.selectbox(label="Select Duration / ရက်အရေအတွက်ရွေးပါ", options=options_map.get(current_lang, options_map["English"]), index=2)
-        
-        if str_web.button("🚀 Confirm & Generate Itinerary", use_container_width=True, type="primary"):
-            with str_web.spinner("Connecting AI..."):
+        selected_days = str_web.selectbox("Select Duration", options_map.get(current_lang, options_map["English"]))
+        if str_web.button("🚀 Confirm & Generate", use_container_width=True):
+            with str_web.spinner("Loading..."):
                 days_number = "".join(filter(str.isdigit, selected_days))
                 placeholder = str_web.empty()
                 full_text = ""
@@ -178,27 +186,26 @@ if prefecture and city:
                     placeholder.markdown(full_text)
             str_web.session_state.show_picker = False
 
-    # Bookmark Action Button
     if str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True):
         bookmark_item = f"{city} ({prefecture})"
         if bookmark_item not in str_web.session_state.bookmarks:
             str_web.session_state.bookmarks.append(bookmark_item)
             str_web.toast(f"Saved {city}!")
 
-    # Google Map
+    # Map Implementation
     search_query = city.replace("区", "").replace("市", "") + f"+{prefecture.split(' ')[0]}"
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="240" style="border:0;"></iframe></div>', unsafe_allow_html=True)
 
-    # --- Etiquette Section ---
+    # --- Etiquette ---
     str_web.markdown("---")
-    str_web.subheader(tx["sec_trip"])
+    str_web.markdown(f"### {tx['sec_trip']}")
     activity_mapping = {
         "English": ["Shopping at supermarkets & cooking", "Sento/Onsen etiquette & bathing", "Riding local buses and fares", "Visiting shrines and temples"],
         "Myanmar": ["ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်း", "အများသုံးရေချိုးခန်း (Onsen) စည်းကမ်းများ", "ဒေသန္တရဘတ်စ်ကားများ စီးနင်းခြင်း", "ဘုရားကျောင်းများနှင့် နတ်ကွန်းများသို့ လည်ပတ်ခြင်း"],
         "Japanese": ["スーパーでの買い物と自炊", "銭湯・温泉の入浴マナー", "路線バスの利用方法と運賃", "神社・仏閣の参拝マナー"]
     }
-    experience_type = str_web.selectbox(tx["act_label"], activity_mapping.get(current_lang, activity_mapping["English"]), index=None, placeholder=tx["act_holder"], label_visibility="collapsed")
+    experience_type = str_web.selectbox(tx["act_label"], activity_mapping.get(current_lang, activity_mapping["English"]), index=None, placeholder=tx["act_holder"])
     if experience_type and str_web.button(tx["guide_btn"], use_container_width=True):
         with str_web.spinner("Generating..."):
             placeholder = str_web.empty()
@@ -207,14 +214,14 @@ if prefecture and city:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
-    # --- Bottom Flex Mini Widgets ---
+    # --- Utilities Mini Display ---
     str_web.markdown("---")
-    str_web.markdown("""
+    str_web.markdown('''
     <div class="utility-flex">
         <div class="mini-card"><div class="mini-card-title">🌤️ Weather</div><div class="mini-card-value">⛅ 15°C</div></div>
         <div class="mini-card"><div class="mini-card-title">💱 Currency</div><div class="mini-card-value">🇺🇸 1$ = 154¥ 🇯🇵</div></div>
     </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
     
     col_w, col_c = str_web.columns(2)
     with col_w:
@@ -222,11 +229,11 @@ if prefecture and city:
             with str_web.spinner("Loading..."):
                 placeholder = str_web.empty()
                 full_text = ""
-                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide 2026 current month weather and clothing for {loc_context}.", config=common_ai_config):
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide 2026 current month weather for {loc_context}.", config=common_ai_config):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
     with col_c:
-        yen_amount = str_web.number_input("Amount in JPY", min_value=0, value=1000, step=500, label_visibility="collapsed")
+        yen_amount = str_web.number_input("Amount in JPY", min_value=0, value=1000, step=500)
         if str_web.button(tx["calc_btn"], use_container_width=True, key="c_btn"):
             with str_web.spinner("Calculating..."):
                 placeholder = str_web.empty()
@@ -235,9 +242,9 @@ if prefecture and city:
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
-    # --- Utilities Tab ---
+    # --- Lower Tabs Utilities ---
     str_web.markdown("---")
-    str_web.subheader(tx["sec_utilities"])
+    str_web.markdown(f"### {tx['sec_utilities']}")
     tab_safety, tab_expense, tab_bookmarks = str_web.tabs([tx["safety_box"], tx["expense_box"], tx["bookmark_box"]])
 
     with tab_safety:
@@ -251,7 +258,7 @@ if prefecture and city:
 
     with tab_expense:
         exp_name = str_web.text_input("Expense Item", placeholder="Ramen")
-        exp_amt = str_web.number_input("Amount (JPY)", min_value=0, step=100)
+        exp_amt = str_web.number_input("Amount (JPY)", min_value=0, step=100, key="exp_num_input")
         if str_web.button("➕ Add Expense", use_container_width=True) and exp_name and exp_amt > 0:
             str_web.session_state.expenses.append({"item": exp_name, "cost": exp_amt})
         if str_web.session_state.expenses:
