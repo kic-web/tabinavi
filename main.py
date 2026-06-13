@@ -4,9 +4,7 @@ import streamlit as str_web
 from google import genai
 from google.genai import types
 from PIL import Image
-# 音声録音機能のためのライブラリをインポート
 from streamlit_mic_recorder import mic_recorder
-# 【新規】超高速かつ無料のGroq APIライブラリをインポート
 from groq import Groq
 
 # 1. Page Config (ページ設定)
@@ -114,52 +112,52 @@ if "ai_cache" not in str_web.session_state:
 if "current_city" not in str_web.session_state:
     str_web.session_state.current_city = ""
 
-# 多言語対応辞書（"6 Days Plan" を簡潔な "Plan" に変更）
+# 多言語対応辞書（新セクションの翻訳を追加）
 ui_translations = {
     "English": {
         "title": "TabiNavi Concierge", "sub": "Your Next-Gen AI Travel Companion",
         "pref_label": "Select Prefecture", "pref_holder": "Choose a prefecture...",
         "city_label": "Select City / Area", "city_holder": "Choose a city...",
-        "sec_quick": "Quick Travel Services",
+        "sec_quick": "🧳 Quick Travel Services",
         "train_btn": "Routes Guide", "food_btn": "Food & Dining", "hotel_btn": "Hotels", "itinerary_btn": "Plan",
+        "sec_cultural": "⛩️ Japan Cultural & Etiquette Companion",
+        "shrine_btn": "Shrines &\nTemples", "onsen_btn": "Onsen &\nSento Rules", "shop_btn": "Local Super\nShopping", "taboo_btn": "Emergency\nTaboos (Don'ts)",
         "cam_box": "Smart Camera Translator", "cam_upload": "Upload image...",
         "text_box": "Text/Speech Translator", "text_input": "Enter text...",
         "sec_utilities": "Travel Utilities", "safety_box": "Disaster Safety Guide", "safety_btn": "Get Emergency Guide",
         "expense_box": "Travel Expense Tracker", "bookmark_box": "Saved Locations",
-        "sec_trip": "Trip Activities & Local Etiquette", "act_label": "Select Activity Type", "act_holder": "Choose an activity...",
-        "guide_btn": "Generate Guide", "weather_box": "Weather & Clothing Guide", "weather_btn": "Check Weather",
-        "calc_box": "Currency Converter", "calc_btn": "Calculate", "sos_btn": "Show Emergency Contacts",
-        "sidebar_title": "Control Panel",
+        "weather_box": "Weather & Clothing Guide", "weather_btn": "Check Weather",
+        "calc_box": "Currency Converter", "calc_btn": "Calculate", "sidebar_title": "Control Panel",
     },
     "Myanmar": {
         "title": "TabiNavi Concierge", "sub": "အဆင့်မြင့် AI စနစ်သုံး အိတ်ဆောင်ခရီးသွားလမ်းညွှန်",
         "pref_label": "ပြည်နယ်/ခရိုင် ကို ရွေးချယ်ပါ", "pref_holder": "ခရိုင်တစ်ခု ရွေးချယ်ပေးပါ...",
         "city_label": "မြို/ဒေသ ကို ရွေးချယ်ပါ", "city_holder": "မြို့ကို ရွေးချယ်ပေးပါ...",
-        "sec_quick": "အမြန်အသုံးပြုနိုင်မည့် ဝန်ဆောင်မှုများ",
+        "sec_quick": "🧳 အမြန်အသုံးပြုနိုင်မည့် ဝန်ဆောင်မှုများ",
         "train_btn": "ရထားလမ်းကြောင်း", "food_btn": "အစားအသောက်ဆိုင်", "hotel_btn": "ဟိုတယ်တည်းခိုခန်း", "itinerary_btn": "ခရီးစဉ်စီစဉ်ရန်",
+        "sec_cultural": "⛩️ ဂျပန်ရိုးရာယဉ်ကျေးမှုနှင့် စည်းကမ်းလမ်းညွှန်",
+        "shrine_btn": "ဘုရားကျောင်း\nဖူးမြော်ခြင်း", "onsen_btn": "အွန်စဲန်းရေချိုး\nစည်းကမ်းများ", "shop_btn": "စူပါမားကတ်\nဈေးဝယ်စနစ်", "taboo_btn": "မပြုလုပ်ရမည့်\nအရေးပေါ်အချက်များ",
         "cam_box": "Smart ကင်မရာ ဘာသာပြန်စနစ်", "cam_upload": "ပုံရိပ် တင်ပေးပါ...",
         "text_box": "အချိန်နဲ့တပြေးညီ ဘာသာပြန်စနစ်", "text_input": "စာသားရိုက်ပါ...",
         "sec_utilities": "ခရီးသွား အသုံးဆောင်များနှင့် စာရင်းများ", "safety_box": "သဘာဝဘေးအန္တရာယ် ဘေးကင်းလုံခြုံရေး", "safety_btn": "အရေးပေါ် လမ်းညွှန်ချက်ရယူမည်",
         "expense_box": "ခရီးသွားစရိတ် မှတ်တမ်း", "bookmark_box": "မှတ်သားထားသော နေရာများ",
-        "sec_trip": "ပြုလုပ်မည့် အတွေ့အကြုံများနှင့် စည်းကမ်းများ", "act_label": "လုပ်ဆောင်မည့် အတွေ့အကြုံ အမျိုးအစား", "act_holder": "အတွေ့အကြုံ ရွေးချယ်ရန်...",
-        "guide_btn": "လမ်းညွှန်ချက် ထုတ်လုပ်မည်", "weather_box": "ရာသီဥတုနှင့် ဝတ်စားဆင်ယင်မှု လမ်းညွှန်", "weather_btn": "ရာသီဥတု စစ်မည်",
-        "calc_box": "ငွေလဲနှုန်း တွက်ချက်စနစ်", "calc_btn": "ငွေလဲနှုန်း တွက်မည်", "sos_btn": "အရေးပေါ် အချက်အလက်ပြပါ",
-        "sidebar_title": "ထိန်းချုပ်ရေးခန်း",
+        "weather_box": "ရာသီဥတုနှင့် ဝတ်စားဆင်ယင်မှု လမ်းညွှန်", "weather_btn": "ရာသီဥတု စစ်မည်",
+        "calc_box": "ငွေလဲနှုန်း တွက်ချက်စနစ်", "calc_btn": "ငွေလဲနှုန်း တွက်မည်", "sidebar_title": "ထိန်းချုပ်ရေးခန်း",
     },
     "Japanese": {
         "title": "TabiNavi Concierge", "sub": "次世代AI旅行コンパニオン",
         "pref_label": "都道府県を選択", "pref_holder": "都道府県 を選択してください...",
         "city_label": "市区町村を選択", "city_holder": "市区町村 を選択してください...",
-        "sec_quick": "クイック旅行サービス",
+        "sec_quick": "🧳 クイック旅行サービス",
         "train_btn": "電車の乗換案内", "food_btn": "グルメ・周辺の飲食店", "hotel_btn": "おすすめの宿泊エリア", "itinerary_btn": "旅行プラン",
+        "sec_cultural": "⛩️ 日本の文化・マナーコンパニオン",
+        "shrine_btn": "神社・仏閣\n参拝マナー", "onsen_btn": "温泉・銭湯\n入浴ルール", "shop_btn": "地元のスーパー\nお買い物方法", "taboo_btn": "緊急タブー\n（禁止事項）",
         "cam_box": "スマートカメラ翻訳", "cam_upload": "画像をアップロード...",
         "text_box": "リアルタイム翻訳・音声通訳", "text_input": "テキストを入力...",
         "sec_utilities": "旅行ユーティリティ", "safety_box": "災害・防災ガイド", "safety_btn": "避難案内を取得",
         "expense_box": "旅費の家計簿", "bookmark_box": "お気に入り保存場所",
-        "sec_trip": "アクティビティ & マナーガイド", "act_label": "アクティビティの種類を選択", "act_holder": "アクティビティを選択...",
-        "guide_btn": "ガイドを生成", "weather_box": "天気・服装ガイド", "weather_btn": "天気をチェック",
-        "calc_box": "通貨換算ツール", "calc_btn": "換算する", "sos_btn": "緊急情報を表示",
-        "sidebar_title": "コントロールパネル",
+        "weather_box": "天気・服装ガイド", "weather_btn": "天気をチェック",
+        "calc_box": "通貨換算ツール", "calc_btn": "換算する", "sidebar_title": "コントロールパネル",
     },
 }
 
@@ -183,7 +181,7 @@ with str_web.sidebar:
                 full_text += chunk.text
                 placeholder.markdown(full_text)
 
-    # テキスト入力翻訳 ＋ 【超ハイブリッド】音声リアルタイム通訳機能
+    # 音声リアルタイム通訳機能 (Groq Whisper + Gemini 2.5)
     with str_web.expander(tx["text_box"]):
         input_text = str_web.text_input(tx["text_input"], key="side_txt_in")
         if str_web.button("🌐 Translate Text", use_container_width=True) and input_text:
@@ -212,35 +210,21 @@ with str_web.sidebar:
             else:
                 with str_web.spinner("🤖 Groq APIが音声をテキストに変換中..."):
                     try:
-                        # 1. 無料のGroq API (Whisper-Large-v3) を使って、音声ファイルをローカルでテキストに即時変換
                         groq_client = Groq(api_key=str_web.secrets.get("GROQ_API_KEY"))
-                        
-                        # 音声バイトデータをGroqが読み込めるタプル形式に設定
                         audio_file_tuple = ("audio.wav", audio_bytes, "audio/wav")
                         
                         transcription = groq_client.audio.transcriptions.create(
                             file=audio_file_tuple,
-                            model="whisper-large-v3", # 👈 世界最高精度の音声認識モデル
+                            model="whisper-large-v3",
                             response_format="text"
                         )
-                        
                         spoken_text = str(transcription).strip()
-                        
-                        # 認識されたテキストを表示
                         str_web.markdown(f"**🗣️ Heard:** `{spoken_text}`")
                         
-                        # 2. 変換された「テキスト」をGemini APIに送り、翻訳をリクエスト（テキスト同士のやり取りなのでクォータをほぼ消費しない）
                         if spoken_text:
                             with str_web.spinner("🌐 Gemini APIが翻訳中..."):
                                 gemini_client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
-                                
-                                gemini_prompt = f"""
-                                You are a professional travel translator. 
-                                The user spoke this text: '{spoken_text}'
-                                1. If it's in Japanese, show the original Japanese text and its Romaji.
-                                2. Translate it accurately and naturally into {current_lang}.
-                                Keep the response short and friendly.
-                                """
+                                gemini_prompt = f"You are a travel translator. Spoken text: '{spoken_text}'. Translate accurately and naturally into {current_lang}. If it's Japanese, include Romaji."
                                 
                                 placeholder = str_web.empty()
                                 full_text = ""
@@ -249,7 +233,7 @@ with str_web.sidebar:
                                     placeholder.markdown(full_text)
                                     
                     except Exception as e:
-                        str_web.error(f"Error processing hybrid audio: {e}")
+                        str_web.error(f"Error processing audio: {e}")
 
 # --- CORE ENGINE SETUP (データ読み込み) ---
 client = genai.Client(api_key=str_web.secrets.get("GEMINI_API_KEY"))
@@ -283,8 +267,11 @@ common_ai_config = types.GenerateContentConfig(temperature=0.7, system_instructi
 # --- USER VIEW INTERACTION (メインコンテンツ) ---
 if prefecture and city:
     loc_context = f"{city}, {prefecture}"
-    str_web.markdown(f"### {tx['sec_quick']}")
     
+    # ==========================================
+    # SECTION 1: QUICK TRAVEL SERVICES
+    # ==========================================
+    str_web.markdown(f"### {tx['sec_quick']}")
     grid_col1, grid_col2, grid_col3, grid_col4 = str_web.columns(4)
     
     with grid_col1:
@@ -348,6 +335,63 @@ if prefecture and city:
                     str_web.markdown(full_text)
             str_web.session_state.show_picker = False
 
+    # ==========================================
+    # 【NEW】SECTION 2: CULTURAL & ETIQUETTE COMPANION
+    # ==========================================
+    str_web.markdown("---")
+    str_web.markdown(f"### {tx['sec_cultural']}")
+    cult_col1, cult_col2, cult_col3, cult_col4 = str_web.columns(4)
+    
+    with cult_col1:
+        if str_web.button(f"⛩️\n\n{tx['shrine_btn']}", use_container_width=True, key="btn_shrine_cult"):
+            if "shrine" in str_web.session_state.ai_cache:
+                str_web.info(str_web.session_state.ai_cache["shrine"])
+            else:
+                with str_web.spinner("Loading..."):
+                    full_text = ""
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide a concise guide on how to visit shrines and temples in {loc_context}, including bowing, handwashing, and praying etiquette.", config=common_ai_config):
+                        full_text += chunk.text
+                    str_web.session_state.ai_cache["shrine"] = full_text
+                    str_web.info(full_text)
+
+    with cult_col2:
+        if str_web.button(f"♨️\n\n{tx['onsen_btn']}", use_container_width=True, key="btn_onsen_cult"):
+            if "onsen" in str_web.session_state.ai_cache:
+                str_web.success(str_web.session_state.ai_cache["onsen"])
+            else:
+                with str_web.spinner("Loading..."):
+                    full_text = ""
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"List strict rules for bathing in {loc_context}'s hot springs/onsen, especially tattoo policies, clothes removal, and towel rules.", config=common_ai_config):
+                        full_text += chunk.text
+                    str_web.session_state.ai_cache["onsen"] = full_text
+                    str_web.success(full_text)
+
+    with cult_col3:
+        if str_web.button(f"🛒\n\n{tx['shop_btn']}", use_container_width=True, key="btn_shop_cult"):
+            if "shop" in str_web.session_state.ai_cache:
+                str_web.warning(str_web.session_state.ai_cache["shop"])
+            else:
+                with str_web.spinner("Loading..."):
+                    full_text = ""
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Explain cash register manners, self-checkout machine usages, and plastic bag rules at local supermarkets in {loc_context}.", config=common_ai_config):
+                        full_text += chunk.text
+                    str_web.session_state.ai_cache["shop"] = full_text
+                    str_web.warning(full_text)
+
+    with cult_col4:
+        if str_web.button(f"🚨\n\n{tx['taboo_btn']}", use_container_width=True, key="btn_taboo_cult"):
+            if "taboo" in str_web.session_state.ai_cache:
+                str_web.error(str_web.session_state.ai_cache["taboo"])
+            else:
+                with str_web.spinner("Loading..."):
+                    full_text = ""
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Give 3 critical 'Don'ts' and taboos in Japan for tourists (e.g., street photography privacy, train manners, restaurant manners) applicable to {loc_context}.", config=common_ai_config):
+                        full_text += chunk.text
+                    str_web.session_state.ai_cache["taboo"] = full_text
+                    str_web.error(full_text)
+
+    # Bookmark & Maps
+    str_web.markdown("---")
     st_bookmark = str_web.button(f"⭐ Save {city} to Bookmarks", use_container_width=True)
     if st_bookmark:
         bookmark_item = f"{city} ({prefecture})"
@@ -358,27 +402,6 @@ if prefecture and city:
     search_query = city.replace("区", "").replace("市", "") + f", {prefecture}"
     map_url = f"https://maps.google.com/maps?q={search_query}&t=&z=14&ie=UTF8&iwloc=&output=embed"
     str_web.markdown(f'<div class="map-wrapper"><iframe src="{map_url}" width="100%" height="280" style="border:0;"></iframe></div>', unsafe_allow_html=True)
-
-    # --- Etiquette Panel ---
-    str_web.markdown("---")
-    str_web.markdown(f"### {tx['sec_trip']}")
-    activity_mapping = {
-        "English": ["Shopping at supermarkets & cooking", "Sento/Onsen etiquette & bathing", "Riding local buses and fares", "Visiting shrines and temples"],
-        "Myanmar": ["ဒေသတွင်းစူပါမားကတ်တွင် ဈေးဝယ်ခြင်း", "အများသုံးရေချိုးခန်း (Onsen) စည်းကမ်းများ", "ဒေသန္တရဘတ်စ်ကားများ စီးနင်းခြင်း", "ဘုရားကျောင်းများနှင့် နတ်ကွန်းများသို့ လည်ပတ်ခြင်း"],
-        "Japanese": ["スーパーでの買い物と自炊", "銭湯・温泉の入浴マナー", "路線バスの利用方法と運賃", "神社・仏閣の参拝マナー"]
-    }
-    experience_type = str_web.selectbox(tx["act_label"], activity_mapping.get(current_lang, activity_mapping["English"]), index=None, placeholder=tx["act_holder"])
-    if experience_type and str_web.button(tx["guide_btn"], use_container_width=True):
-        cache_key = f"etiquette_{experience_type}"
-        if cache_key in str_web.session_state.ai_cache:
-            str_web.markdown(str_web.session_state.ai_cache[cache_key])
-        else:
-            with str_web.spinner("Generating..."):
-                full_text = ""
-                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide etiquette guide for '{experience_type}' in {loc_context}.", config=common_ai_config):
-                    full_text += chunk.text
-                str_web.session_state.ai_cache[cache_key] = full_text
-                str_web.markdown(full_text)
 
     # --- Utilities Weather & Currency Cards ---
     str_web.markdown("---")
@@ -397,7 +420,7 @@ if prefecture and city:
             else:
                 with str_web.spinner("Loading..."):
                     full_text = ""
-                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide current month weather for {loc_context}.", config=common_ai_config):
+                    for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Provide current month weather and clothing suggestions for {loc_context}.", config=common_ai_config):
                         full_text += chunk.text
                     str_web.session_state.ai_cache["weather"] = full_text
                     str_web.markdown(full_text)
@@ -407,7 +430,7 @@ if prefecture and city:
             with str_web.spinner("Calculating..."):
                 placeholder = str_web.empty()
                 full_text = ""
-                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Convert {yen_amount} JPY to MMK/USD with recent rates.", config=common_ai_config):
+                for chunk in client.models.generate_content_stream(model="gemini-2.5-flash", contents=f"Convert {yen_amount} JPY to MMK and USD with recent rates.", config=common_ai_config):
                     full_text += chunk.text
                     placeholder.markdown(full_text)
 
