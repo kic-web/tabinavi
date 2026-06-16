@@ -151,7 +151,7 @@ ui_translations = {
         "sec_quick": "🧳 クイック旅行サービス",
         "train_btn": "電車の乗換案内", "food_btn": "グルメ・周辺の飲食店", "hotel_btn": "おすすめの宿泊エリア", "itinerary_btn": "旅行プラン",
         "sec_cultural": "⛩️ 日本の文化・マナーコンパニオン",
-        "shrine_btn": "神社・仏閣\n参拝マナー", "onsen_btn": "温泉・銭湯\n入浴ルール", "shop_btn": "地元のスーパー\nお買い物方法", "taboo_btn": "緊急タブー\n（禁止事項）",
+        "shrine_btn": "神社・仏閣\n参拝マナー", "onsen_btn": "温泉・銭湯\n入浴ルール", "shop_btn": "お買い物方法", "taboo_btn": "禁止事項",
         "cam_box": "スマートカメラ翻訳", "cam_upload": "画像をアップロード...",
         "text_box": "リアルタイム翻訳・音声通訳", "text_input": "テキストを入力...",
         "sec_utilities": "旅行ユーティリティ", "safety_box": "災害・防災ガイド", "safety_btn": "避難案内を取得",
